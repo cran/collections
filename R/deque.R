@@ -1,7 +1,6 @@
 #' @title Double Ended Queue
 #' @description
 #' The `Deque` class creates a double ended queue with pairlist backend.
-#' It is recommended for long queues.
 #' @section Usage:
 #' \preformatted{
 #' Deque$new()
@@ -88,7 +87,7 @@ Deque <- R6::R6Class("Deque",
 #' @title Double Ended Queue (list based)
 #' @description
 #' The `DequeL` class creates a double ended queue with list backend.
-#' It is recommended for short queues.
+#' Pure R implementation, mainly for benchmark.
 #' @section Usage:
 #' \preformatted{
 #' DequeL$new()
@@ -132,12 +131,14 @@ DequeL <- R6::R6Class("DequeL",
             invisible(item)
         },
         pop = function() {
+            if (private$n == 0) stop("deque is empty")
             v <- private$q[[private$n]]
             private$q <- private$q[-private$n]
             private$n <- private$n - 1
             v
         },
         popleft = function() {
+            if (private$n == 0) stop("deque is empty")
             v <- private$q[[1]]
             private$q <- private$q[-1]
             private$n <- private$n - 1
@@ -159,6 +160,7 @@ DequeL <- R6::R6Class("DequeL",
             ind <- match(value, private$q)
             if (is.na(ind)) stop("value not found")
             private$q <- private$q[-ind]
+            private$n <- private$n - 1
             invisible(value)
         },
         size = function() length(private$q),

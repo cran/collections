@@ -2,7 +2,6 @@
 #' @description
 #' The `OrderedDict` class creates an ordered dictionary.
 #' Keys are stored in a double ended queue [Deque] while items are stored in an R environment.
-#' It is recommended for large dicts.
 #' @section Usage:
 #' \preformatted{
 #' OrderedDict$new()
@@ -10,6 +9,7 @@
 #' OrderedDict$get(key, default = NULL)
 #' OrderedDict$remove(key)
 #' OrderedDict$pop(key, default = NULL)
+#' OrderedDict$popitem(last = TRUE, default = NULL)
 #' OrderedDict$has(key)
 #' OrderedDict$keys()
 #' OrderedDict$values()
@@ -45,7 +45,7 @@ OrderedDict <- R6::R6Class("OrderedDict",
             assign(key, value, envir = private$e)
         },
         get = function(key, default = NULL) {
-            private$e[[key]]
+            .Call("dict_get", PACKAGE = "collections", private$e, key, default)
         },
         remove = function(key) {
             private$q$remove(key)
@@ -53,10 +53,19 @@ OrderedDict <- R6::R6Class("OrderedDict",
             invisible(NULL)
         },
         pop = function(key, default = NULL) {
-            if (is.null(key)) stop("key cannot be empty")
             v <- self$get(key, default)
             self$remove(key)
             v
+        },
+        popitem = function(last = TRUE, default = NULL) {
+            if (last) {
+                key <- private$q$pop()
+            } else {
+                key <- private$q$popleft()
+            }
+            v <- self$get(key, default)
+            .Internal(remove(key, private$e, FALSE))
+            list(key = key, value = v)
         },
         has = function(key) {
             key %in% self$keys()
@@ -94,7 +103,7 @@ OrderedDict <- R6::R6Class("OrderedDict",
 #' @description
 #' The `OrderedDictL` class creates an ordered dictionary.
 #' The key-value pairs are stored in an R environment.
-#' It is recommended for small dicts.
+#' Pure R implementation, mainly for benchmark.
 #' @section Usage:
 #' \preformatted{
 #' OrderedDictL$new()
@@ -102,6 +111,7 @@ OrderedDict <- R6::R6Class("OrderedDict",
 #' OrderedDictL$get(key, default = NULL)
 #' OrderedDictL$remove(key)
 #' OrderedDictL$pop(key, default = NULL)
+#' OrderedDict$popitem(last = TRUE, default = NULL)
 #' OrderedDictL$has(key)
 #' OrderedDictL$keys()
 #' OrderedDictL$values()
@@ -135,7 +145,11 @@ OrderedDictL <- R6::R6Class("OrderedDictL",
             private$e[[key]] <- value
         },
         get = function(key, default = NULL) {
-            private$e[[key]]
+            if (self$has(key)) {
+                private$e[[key]]
+            } else {
+                default
+            }
         },
         remove = function(key) {
             v <- self$keys() != key
@@ -144,10 +158,20 @@ OrderedDictL <- R6::R6Class("OrderedDictL",
             invisible(NULL)
         },
         pop = function(key, default = NULL) {
-            if (is.null(key)) stop("key cannot be empty")
             v <- self$get(key, default)
             self$remove(key)
             v
+        },
+        popitem = function(last = TRUE, default = NULL) {
+            if (last) {
+                keys <- self$keys()
+                key <- key[length(keys)]
+            } else {
+                keys <- self$keys()[1]
+            }
+            v <- self$get(key, default)
+            self$remove(key)
+            list(key = key, vlaue = v)
         },
         has = function(key) {
             key %in% self$keys()

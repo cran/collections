@@ -17,13 +17,14 @@ The key-value pairs are stored in an R environment.
 \preformatted{
 Dict$new()
 Dict$set(key, value)
-Dict$get(key, default = NULL)
+Dict$get(key)
 Dict$remove(key)
-Dict$pop(key, default = NULL)
+Dict$pop(key)
 Dict$has(key)
 Dict$keys()
 Dict$values()
 Dict$update(d)
+Dict$clear()
 Dict$size()
 Dict$as_list()
 }
@@ -32,7 +33,6 @@ Dict$as_list()
 \itemize{
 \item \code{key}: any R object, key of the item
 \item \code{value}: any R object, value of the item
-\item \code{default}: the default value of an item if the key is not found
 }
 }
 

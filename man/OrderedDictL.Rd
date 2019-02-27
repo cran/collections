@@ -10,7 +10,7 @@ OrderedDictL
 }
 \description{
 The \code{OrderedDictL} class creates an ordered dictionary.
-The key-value pairs are stored in an R environment.
+The key-value pairs are stored in an R List.
 Pure R implementation, mainly for benchmark.
 }
 \section{Usage}{
@@ -18,14 +18,15 @@ Pure R implementation, mainly for benchmark.
 \preformatted{
 OrderedDictL$new()
 OrderedDictL$set(key, value)
-OrderedDictL$get(key, default = NULL)
+OrderedDictL$get(key)
 OrderedDictL$remove(key)
-OrderedDictL$pop(key, default = NULL)
-OrderedDict$popitem(last = TRUE, default = NULL)
+OrderedDictL$pop(key)
+OrderedDict$popitem(last = TRUE)
 OrderedDictL$has(key)
 OrderedDictL$keys()
 OrderedDictL$values()
 OrderedDictL$update(d)
+OrderedDictL$clear()
 OrderedDictL$size()
 OrderedDictL$as_list()
 }
@@ -36,7 +37,6 @@ OrderedDictL$as_list()
 \itemize{
 \item \code{key}: any R object, key of the item
 \item \code{value}: any R object, value of the item
-\item \code{default}: the default value of an item if the key is not found
 \item \code{d}: an OrderedDict or OrderedDictL
 }
 }

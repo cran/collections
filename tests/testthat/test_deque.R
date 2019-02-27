@@ -86,6 +86,26 @@ test_that("remove", {
 })
 
 
+test_that("extend", {
+    q <- Deque$new()
+    q2 <- Deque$new()
+    q2$push("a")
+    q2$push("b")
+    q$extend(q2)
+    expect_equal(q$size(), 2)
+    expect_equal(q$pop(), "b")
+    q$extendleft(q2)
+    expect_equal(q$popleft(), "b")
+})
+
+test_that("clear", {
+    q <- Deque$new()
+    q$push("a")
+    q$push("b")
+    q$clear()
+    expect_equal(q$size(), 0)
+})
+
 context("DequeL")
 
 test_that("push and pop", {
@@ -171,4 +191,26 @@ test_that("remove", {
     q$remove(1)
     expect_equal(q$size(), 1)
     expect_equal(q$pop(), 2)
+})
+
+
+
+test_that("extend", {
+    q <- DequeL$new()
+    q2 <- DequeL$new()
+    q2$push("a")
+    q2$push("b")
+    q$extend(q2)
+    expect_equal(q$size(), 2)
+    expect_equal(q$pop(), "b")
+    q$extendleft(q2)
+    expect_equal(q$popleft(), "b")
+})
+
+test_that("clear", {
+    q <- DequeL$new()
+    q$push("a")
+    q$push("b")
+    q$clear()
+    expect_equal(q$size(), 0)
 })

@@ -9,7 +9,7 @@ test_that("push and pop", {
     expect_equal(d$get("b"), 2)
     expect_equal(d$get("a"), 1)
     expect_equal(d$get("c"), 3)
-    # expect_error(d$pop("d"), "not found")
+    expect_error(d$pop("d"), "not found")
     d$remove("b")
     expect_equal(d$size(), 2)
     expect_equal(d$pop("a"), 1)
@@ -19,6 +19,16 @@ test_that("push and pop", {
     expect_equal(d$size(), 1)
     expect_equal(d$pop("c"), 5)
 })
+
+test_that("clear", {
+    d <- OrderedDict$new()
+    d$set("b", 2)
+    d$set("a", 1)
+    d$set("c", 3)
+    d$clear()
+    expect_equal(d$size(), 0)
+})
+
 
 context("OrderedDictL")
 
@@ -32,7 +42,7 @@ test_that("push and pop", {
     expect_equal(d$get("b"), 2)
     expect_equal(d$get("a"), 1)
     expect_equal(d$get("c"), 3)
-    # expect_error(d$pop("d"), "not found")
+    expect_error(d$pop("d"), "not found")
     d$remove("b")
     expect_equal(d$size(), 2)
     expect_equal(d$pop("a"), 1)
@@ -41,4 +51,13 @@ test_that("push and pop", {
     expect_equal(d$get("c"), 5)
     expect_equal(d$size(), 1)
     expect_equal(d$pop("c"), 5)
+})
+
+test_that("clear", {
+    d <- OrderedDictL$new()
+    d$set("b", 2)
+    d$set("a", 1)
+    d$set("c", 3)
+    d$clear()
+    expect_equal(d$size(), 0)
 })

@@ -11,6 +11,7 @@
 #' Deque$extend(q)
 #' Deque$extendleft(q)
 #' Deque$remove(item)
+#' Deque$clear()
 #' Deque$size()
 #' Deque$as_list()
 #' }
@@ -33,6 +34,9 @@ Deque <- R6::R6Class("Deque",
         last = NULL
     ),
     public = list(
+        initialize = function() {
+            self$clear()
+        },
         push = function(item) {
             invisible(.Call("deque_push", PACKAGE = "collections", private, item))
         },
@@ -57,13 +61,17 @@ Deque <- R6::R6Class("Deque",
         },
         extendleft = function(deque) {
             !inherits(deque, "Deque") && stop("expect Deque object")
-            q <- deque$.__enclos_env__$private$last
+            q <- deque$.__enclos_env__$private$q
             while (!is.null(q)) {
                 v <- .Call("pairlist_car", PACKAGE = "collections", q)
                 self$pushleft(v[[2]])
-                q <- v[[1]]
+                q <- .Call("pairlist_cdr", PACKAGE = "collections", q)
             }
             invisible(self)
+        },
+        clear = function() {
+            private$q <- NULL
+            private$last <- NULL
         },
         remove = function(item) {
             invisible(.Call("deque_remove", PACKAGE = "collections", private, item))
@@ -97,6 +105,7 @@ Deque <- R6::R6Class("Deque",
 #' DequeL$popleft()
 #' DequeL$extend(q)
 #' DequeL$extendleft(q)
+#' DequeL$clear()
 #' DequeL$remove(item)
 #' DequeL$size()
 #' DequeL$as_list()
@@ -116,10 +125,13 @@ Deque <- R6::R6Class("Deque",
 DequeL <- R6::R6Class("DequeL",
     cloneable = FALSE,
     private = list(
-        q = list(),
-        n = 0
+        q = NULL,
+        n = NULL
     ),
     public = list(
+        initialize = function() {
+            self$clear()
+        },
         push = function(item) {
             private$q[[private$n + 1]] <- item
             private$n <- private$n + 1
@@ -148,13 +160,19 @@ DequeL <- R6::R6Class("DequeL",
             !inherits(deque, "DequeL") && stop("expect DequeL object")
             q <- deque$.__enclos_env__$private$q
             private$q <- c(private$q, q)
+            private$n <- length(private$q)
             invisible(self)
         },
         extendleft = function(deque) {
             !inherits(deque, "DequeL") && stop("expect DequeL object")
             q <- deque$.__enclos_env__$private$q
             private$q <- c(rev(q), private$q)
+            private$n <- length(private$q)
             invisible(self)
+        },
+        clear = function() {
+            private$q <- list()
+            private$n <- 0
         },
         remove = function(value) {
             ind <- match(value, private$q)

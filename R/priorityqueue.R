@@ -6,6 +6,7 @@
 #' PriorityQueue$new()
 #' PriorityQueue$push(item, priority = 0)
 #' PriorityQueue$pop()
+#' PriorityQueue$clear()
 #' PriorityQueue$size()
 #' PriorityQueue$as_list()
 #' }
@@ -25,17 +26,32 @@
 PriorityQueue <- R6::R6Class("PriorityQueue",
     cloneable = FALSE,
     private = list(
-        h = list(),
-        n = 0
+        h = NULL,
+        n = NULL
     ),
     public = list(
+        initialize = function() {
+            self$clear()
+        },
         push = function(item, priority = 0) {
             invisible(.Call("heap_push", PACKAGE = "collections", private, item, priority))
         },
         pop = function() {
             .Call("heap_pop", PACKAGE = "collections", private)
         },
+        clear = function() {
+            private$h <- list()
+            private$n <- 0
+        },
         size = function() private$n,
-        as_list = function() lapply(seq_len(private$n), function(i) private$h[[i]][[2]])
+        as_list = function() {
+            priorities <- sapply(seq_len(private$n), function(i) private$h[[i]][[1]])
+            ord <- order(priorities, decreasing = TRUE)
+            ret <- list()
+            for (i in seq_len(private$n)) {
+                ret[[i]] <- private$h[[ord[i]]][[2]]
+            }
+            ret
+        }
     )
 )

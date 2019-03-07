@@ -1,3 +1,7 @@
+# helper to identify if default is missing
+missing_arg <- function() .Call("missing_arg", PACKAGE = "collections")
+
+
 #' @title Dictionary
 #' @description
 #' The `Dict` class creates an ordinary (unordered) dictionary.
@@ -6,9 +10,9 @@
 #' \preformatted{
 #' Dict$new()
 #' Dict$set(key, value)
-#' Dict$get(key)
+#' Dict$get(key, default = NULL)
 #' Dict$remove(key)
-#' Dict$pop(key)
+#' Dict$pop(key, default = NULL)
 #' Dict$has(key)
 #' Dict$keys()
 #' Dict$values()
@@ -20,6 +24,7 @@
 #' @section Usage:
 #' * `key`: any R object, key of the item
 #' * `value`: any R object, value of the item
+#' * `default`: optional, the default value of an item if the key is not found
 #' @examples
 #' d <- Dict$new()
 #' d$set("apple", 5)
@@ -43,15 +48,15 @@ Dict <- R6::R6Class("Dict",
         set = function(key, value) {
             assign(key, value, envir = private$e)
         },
-        get = function(key) {
-            .Call("dict_get", PACKAGE = "collections", private$e, key)
+        get = function(key, default = missing_arg()) {
+            .Call("dict_get", PACKAGE = "collections", private$e, key, default)
         },
         remove = function(key) {
             .Internal(remove(key, private$e, FALSE))
             invisible(NULL)
         },
-        pop = function(key) {
-            v <- self$get(key)
+        pop = function(key, default = missing_arg()) {
+            v <- self$get(key, default)
             self$remove(key)
             v
         },

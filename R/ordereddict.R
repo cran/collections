@@ -6,9 +6,9 @@
 #' \preformatted{
 #' OrderedDict$new()
 #' OrderedDict$set(key, value)
-#' OrderedDict$get(key)
+#' OrderedDict$get(key, default = NULL)
 #' OrderedDict$remove(key)
-#' OrderedDict$pop(key)
+#' OrderedDict$pop(key, default = NULL)
 #' OrderedDict$popitem(last = TRUE)
 #' OrderedDict$has(key)
 #' OrderedDict$keys()
@@ -21,6 +21,7 @@
 #' @section Argument:
 #' * `key`: any R object, key of the item
 #' * `value`: any R object, value of the item
+#' * `default`: optinal, the default value of an item if the key is not found
 #' * `d`: an OrderedDict or OrderedDictL
 #' @examples
 #' d <- OrderedDict$new()
@@ -47,16 +48,17 @@ OrderedDict <- R6::R6Class("OrderedDict",
             private$q$push(key)
             assign(key, value, envir = private$e)
         },
-        get = function(key) {
-            .Call("dict_get", PACKAGE = "collections", private$e, key)
+        get = function(key, default = missing_arg()) {
+            .Call("dict_get", PACKAGE = "collections", private$e, key, default)
         },
         remove = function(key) {
-            private$q$remove(key)
+            result <- try(private$q$remove(key), silent = TRUE)
+            inherits(result, "try-error") && stop("key not found")
             .Internal(remove(key, private$e, FALSE))
             invisible(NULL)
         },
-        pop = function(key) {
-            v <- self$get(key)
+        pop = function(key, default = missing_arg()) {
+            v <- self$get(key, default)
             self$remove(key)
             v
         },
@@ -115,9 +117,9 @@ OrderedDict <- R6::R6Class("OrderedDict",
 #' \preformatted{
 #' OrderedDictL$new()
 #' OrderedDictL$set(key, value)
-#' OrderedDictL$get(key)
+#' OrderedDictL$get(key, default = NULL)
 #' OrderedDictL$remove(key)
-#' OrderedDictL$pop(key)
+#' OrderedDictL$pop(key, default = NULL)
 #' OrderedDict$popitem(last = TRUE)
 #' OrderedDictL$has(key)
 #' OrderedDictL$keys()
@@ -130,6 +132,7 @@ OrderedDict <- R6::R6Class("OrderedDict",
 #' @section Argument:
 #' * `key`: any R object, key of the item
 #' * `value`: any R object, value of the item
+#' * `default`: optinal, the default value of an item if the key is not found
 #' * `d`: an OrderedDict or OrderedDictL
 #' @examples
 #' d <- OrderedDictL$new()
@@ -154,21 +157,23 @@ OrderedDictL <- R6::R6Class("OrderedDictL",
         set = function(key, value) {
             private$e[[key]] <- value
         },
-        get = function(key) {
+        get = function(key, default = NULL) {
             if (self$has(key)) {
                 private$e[[key]]
-            } else {
+            } else if (missing(default)) {
                 stop("key not found")
+            }  else {
+                default
             }
         },
         remove = function(key) {
             v <- self$keys() != key
-            if (all(v)) stop("value not found")
+            if (all(v)) stop("key not found")
             private$e <- private$e[v]
             invisible(NULL)
         },
-        pop = function(key) {
-            v <- self$get(key)
+        pop = function(key, default = NULL) {
+            v <- self$get(key, default)
             self$remove(key)
             v
         },

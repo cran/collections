@@ -14,7 +14,7 @@ The \code{PriorityQueue} class creates a priority queue (a.k.a heap).
 \section{Usage}{
 
 \preformatted{
-PriorityQueue$new()
+PriorityQueue$new(items = NULL, priorities = NULL)
 PriorityQueue$push(item, priority = 0)
 PriorityQueue$pop()
 PriorityQueue$clear()
@@ -26,8 +26,10 @@ PriorityQueue$as_list()
 \section{Argument}{
 
 \itemize{
+\item \code{items}: initialization list
+\item \code{priorities}: a vector of priorities of the same length of \code{items}
 \item \code{item}: any R object
-\item \code{priority}: non-negative interger, item with larger priority pops first
+\item \code{priority}: a real number, item with larger priority pops first
 }
 }
 
@@ -39,5 +41,8 @@ q$push("not_as_urgent", priority = 1)
 q$pop()  # urgent
 q$pop()  # not_as_urgent
 q$pop()  # not_urgent
+
+q <- PriorityQueue$new(list("not_urgent", "urgent"), c(0, 2))
+q$push("not_as_urgent", 1)$push("not_urgent2")
 }
 \keyword{datasets}

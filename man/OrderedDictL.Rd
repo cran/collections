@@ -16,11 +16,11 @@ Pure R implementation, mainly for benchmark.
 \section{Usage}{
 
 \preformatted{
-OrderedDictL$new()
+OrderedDictL$new(items = NULL)
 OrderedDictL$set(key, value)
-OrderedDictL$get(key, default = NULL)
+OrderedDictL$get(key, default)
 OrderedDictL$remove(key)
-OrderedDictL$pop(key, default = NULL)
+OrderedDictL$pop(key, default)
 OrderedDict$popitem(last = TRUE)
 OrderedDictL$has(key)
 OrderedDictL$keys()
@@ -35,6 +35,7 @@ OrderedDictL$as_list()
 \section{Argument}{
 
 \itemize{
+\item \code{items}: initialization list
 \item \code{key}: any R object, key of the item
 \item \code{value}: any R object, value of the item
 \item \code{default}: optinal, the default value of an item if the key is not found
@@ -43,14 +44,13 @@ OrderedDictL$as_list()
 }
 
 \examples{
-d <- OrderedDictL$new()
-d$set("apple", 5)
-d$set("orange", 10)
+d <- OrderedDictL$new(list(apple = 5, orange = 10))
 d$set("banana", 3)
 d$get("apple")
 d$as_list()  # the order the item is preserved
 d$pop("orange")
 d$as_list()  # "orange" is removed
+d$set("orange", 3)$set("pear", 7)  # chain methods
 }
 \seealso{
 \link{Dict} and \link{OrderedDict}

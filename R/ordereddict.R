@@ -4,11 +4,11 @@
 #' Keys are stored in a double ended queue [Deque] while items are stored in an R environment.
 #' @section Usage:
 #' \preformatted{
-#' OrderedDict$new()
+#' OrderedDict$new(items = NULL)
 #' OrderedDict$set(key, value)
-#' OrderedDict$get(key, default = NULL)
+#' OrderedDict$get(key, default)
 #' OrderedDict$remove(key)
-#' OrderedDict$pop(key, default = NULL)
+#' OrderedDict$pop(key, default)
 #' OrderedDict$popitem(last = TRUE)
 #' OrderedDict$has(key)
 #' OrderedDict$keys()
@@ -19,19 +19,19 @@
 #' OrderedDict$as_list()
 #' }
 #' @section Argument:
+#' * `items`: initialization list
 #' * `key`: any R object, key of the item
 #' * `value`: any R object, value of the item
 #' * `default`: optinal, the default value of an item if the key is not found
 #' * `d`: an OrderedDict or OrderedDictL
 #' @examples
-#' d <- OrderedDict$new()
-#' d$set("apple", 5)
-#' d$set("orange", 10)
+#' d <- OrderedDict$new(list(apple = 5, orange = 10))
 #' d$set("banana", 3)
 #' d$get("apple")
 #' d$as_list()  # the order the item is preserved
 #' d$pop("orange")
 #' d$as_list()  # "orange" is removed
+#' d$set("orange", 3)$set("pear", 7)  # chain methods
 #' @seealso [Dict] and [OrderedDictL]
 #' @export
 OrderedDict <- R6::R6Class("OrderedDict",
@@ -41,12 +41,16 @@ OrderedDict <- R6::R6Class("OrderedDict",
         q = NULL
     ),
     public = list(
-        initialize = function() {
+        initialize = function(items = NULL) {
             self$clear()
+            for (argname in names(items)) {
+                self$set(argname, items[[argname]])
+            }
         },
         set = function(key, value) {
             private$q$push(key)
             assign(key, value, envir = private$e)
+            invisible(self)
         },
         get = function(key, default = missing_arg()) {
             .Call("dict_get", PACKAGE = "collections", private$e, key, default)
@@ -55,7 +59,7 @@ OrderedDict <- R6::R6Class("OrderedDict",
             result <- try(private$q$remove(key), silent = TRUE)
             inherits(result, "try-error") && stop("key not found")
             .Internal(remove(key, private$e, FALSE))
-            invisible(NULL)
+            invisible(self)
         },
         pop = function(key, default = missing_arg()) {
             v <- self$get(key, default)
@@ -73,17 +77,16 @@ OrderedDict <- R6::R6Class("OrderedDict",
             list(key = key, value = v)
         },
         has = function(key) {
-            key %in% self$keys()
+            key %in% ls(private$e)
         },
         keys = function() {
-            private$q$as_list()
+            as.character(private$q$as_list())
         },
         values = function() {
-            ret <- list()
-            i <- 0
-            for (key in self$keys()) {
-                i <- i + 1
-                ret[[i]] <- self$get(key)
+            ret <- vector("list", self$size())
+            keys <- self$keys()
+            for (i in seq_along(keys)) {
+                ret[[i]] <- self$get(keys[i])
             }
             ret
         },
@@ -99,11 +102,17 @@ OrderedDict <- R6::R6Class("OrderedDict",
         },
         size = function() length(ls(private$e)),
         as_list = function() {
-            ret <- list()
-            for (key in self$keys()) {
-                ret[[key]] <- self$get(key)
+            ret <- vector("list", self$size())
+            keys <- self$keys()
+            names(ret) <- keys
+            for (i in seq_along(keys)) {
+                ret[[i]] <- self$get(keys[i])
             }
             ret
+        },
+        print = function() {
+            n <- self$size()
+            cat("OrderedDict object with", n, "item(s).\n")
         }
     )
 )
@@ -115,11 +124,11 @@ OrderedDict <- R6::R6Class("OrderedDict",
 #' Pure R implementation, mainly for benchmark.
 #' @section Usage:
 #' \preformatted{
-#' OrderedDictL$new()
+#' OrderedDictL$new(items = NULL)
 #' OrderedDictL$set(key, value)
-#' OrderedDictL$get(key, default = NULL)
+#' OrderedDictL$get(key, default)
 #' OrderedDictL$remove(key)
-#' OrderedDictL$pop(key, default = NULL)
+#' OrderedDictL$pop(key, default)
 #' OrderedDict$popitem(last = TRUE)
 #' OrderedDictL$has(key)
 #' OrderedDictL$keys()
@@ -130,19 +139,19 @@ OrderedDict <- R6::R6Class("OrderedDict",
 #' OrderedDictL$as_list()
 #' }
 #' @section Argument:
+#' * `items`: initialization list
 #' * `key`: any R object, key of the item
 #' * `value`: any R object, value of the item
 #' * `default`: optinal, the default value of an item if the key is not found
 #' * `d`: an OrderedDict or OrderedDictL
 #' @examples
-#' d <- OrderedDictL$new()
-#' d$set("apple", 5)
-#' d$set("orange", 10)
+#' d <- OrderedDictL$new(list(apple = 5, orange = 10))
 #' d$set("banana", 3)
 #' d$get("apple")
 #' d$as_list()  # the order the item is preserved
 #' d$pop("orange")
 #' d$as_list()  # "orange" is removed
+#' d$set("orange", 3)$set("pear", 7)  # chain methods
 #' @seealso [Dict] and [OrderedDict]
 #' @export
 OrderedDictL <- R6::R6Class("OrderedDictL",
@@ -151,13 +160,17 @@ OrderedDictL <- R6::R6Class("OrderedDictL",
         e = NULL
     ),
     public = list(
-        initialize = function() {
+        initialize = function(items = NULL) {
             self$clear()
+            for (argname in names(items)) {
+                self$set(argname, items[[argname]])
+            }
         },
         set = function(key, value) {
-            private$e[[key]] <- value
+            private$e[key] <- list(value)
+            invisible(self)
         },
-        get = function(key, default = NULL) {
+        get = function(key, default) {
             if (self$has(key)) {
                 private$e[[key]]
             } else if (missing(default)) {
@@ -170,9 +183,9 @@ OrderedDictL <- R6::R6Class("OrderedDictL",
             v <- self$keys() != key
             if (all(v)) stop("key not found")
             private$e <- private$e[v]
-            invisible(NULL)
+            invisible(self)
         },
-        pop = function(key, default = NULL) {
+        pop = function(key, default) {
             v <- self$get(key, default)
             self$remove(key)
             v
@@ -192,14 +205,13 @@ OrderedDictL <- R6::R6Class("OrderedDictL",
             key %in% self$keys()
         },
         keys = function() {
-            names(private$e)
+            as.character(names(private$e))
         },
         values = function() {
-            ret <- list()
-            i <- 0
-            for (key in self$keys()) {
-                i <- i + 1
-                ret[[i]] <- self$get(key)
+            ret <- vector("list", self$size())
+            keys <- self$keys()
+            for (i in seq_along(keys)) {
+                ret[[i]] <- self$get(keys[i])
             }
             ret
         },
@@ -213,6 +225,10 @@ OrderedDictL <- R6::R6Class("OrderedDictL",
             private$e <- list()
         },
         size = function() length(private$e),
-        as_list = function() private$e
+        as_list = function() private$e,
+        print = function() {
+            n <- self$size()
+            cat("OrderedDictL object with", n, "item(s).\n")
+        }
     )
 )

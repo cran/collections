@@ -3,7 +3,7 @@
 #' The `Deque` class creates a double ended queue with pairlist backend.
 #' @section Usage:
 #' \preformatted{
-#' Deque$new()
+#' Deque$new(items = NULL)
 #' Deque$push(item)
 #' Deque$pushleft(item)
 #' Deque$pop()
@@ -18,6 +18,7 @@
 #' Deque$as_list()
 #' }
 #' @section Arguments:
+#' * `items`: initialization list
 #' * `item`: any R object
 #' * `q`: a Deque object
 #' @examples
@@ -27,6 +28,9 @@
 #' q$pushleft("baz")
 #' q$pop()  # bar
 #' q$popleft()  # baz
+#'
+#' q <- Deque$new(list("foo", "bar"))
+#' q$push("baz")$pushleft("bla")
 #' @seealso [DequeL]
 #' @export
 Deque <- R6::R6Class("Deque",
@@ -36,14 +40,20 @@ Deque <- R6::R6Class("Deque",
         last = NULL
     ),
     public = list(
-        initialize = function() {
+        initialize = function(items = NULL) {
             self$clear()
+            for (i in seq_along(items)) {
+                self$push(items[[i]])
+            }
         },
         push = function(item) {
-            invisible(.Call("deque_push", PACKAGE = "collections", private, item))
+            .Call("deque_push", PACKAGE = "collections", private, item)
+            invisible(self)
         },
         pushleft = function(item) {
-            invisible(.Call("deque_pushleft", PACKAGE = "collections", private, item))
+            .Call("deque_pushleft", PACKAGE = "collections", private, item)
+            invisible(self)
+
         },
         pop = function() {
             .Call("deque_pop", PACKAGE = "collections", private)
@@ -84,19 +94,23 @@ Deque <- R6::R6Class("Deque",
             private$last <- NULL
         },
         remove = function(item) {
-            invisible(.Call("deque_remove", PACKAGE = "collections", private, item))
+            .Call("deque_remove", PACKAGE = "collections", private, item)
+            invisible(self)
         },
         size = function() length(private$q),
         as_list = function() {
-            ret <- list()
-            i <- 0
+            n <- self$size()
+            ret <- vector("list", n)
             x <- private$q
-            while (!is.null(x)) {
-                i <- i + 1
+            for (i in seq_len(n)) {
                 ret[[i]] <- .Call("pairlist_car", PACKAGE = "collections", x)[[2]]
                 x <- .Call("pairlist_cdr", PACKAGE = "collections", x)
             }
             ret
+        },
+        print = function() {
+            n <- self$size()
+            cat("Deque object with", n, "item(s).\n")
         }
     )
 )
@@ -108,7 +122,7 @@ Deque <- R6::R6Class("Deque",
 #' Pure R implementation, mainly for benchmark.
 #' @section Usage:
 #' \preformatted{
-#' DequeL$new()
+#' DequeL$new(items = NULL)
 #' DequeL$push(item)
 #' DequeL$pushleft(item)
 #' DequeL$pop()
@@ -123,6 +137,7 @@ Deque <- R6::R6Class("Deque",
 #' DequeL$as_list()
 #' }
 #' @section Arguments:
+#' * `items`: initialization list
 #' * `item`: any R object
 #' * `q`: a DequeL object
 #' @examples
@@ -132,6 +147,9 @@ Deque <- R6::R6Class("Deque",
 #' q$pushleft("baz")
 #' q$pop()  # bar
 #' q$popleft()  # baz
+#'
+#' q <- DequeL$new(list("foo", "bar"))
+#' q$push("baz")$pushleft("bla")
 #' @seealso [Deque]
 #' @export
 DequeL <- R6::R6Class("DequeL",
@@ -141,18 +159,21 @@ DequeL <- R6::R6Class("DequeL",
         n = NULL
     ),
     public = list(
-        initialize = function() {
+        initialize = function(items = NULL) {
             self$clear()
+            for (i in seq_along(items)) {
+                self$push(items[[i]])
+            }
         },
         push = function(item) {
             private$q[[private$n + 1]] <- item
             private$n <- private$n + 1
-            invisible(item)
+            invisible(self)
         },
         pushleft = function(item) {
             private$q <- c(item, private$q)
             private$n <- private$n + 1
-            invisible(item)
+            invisible(self)
         },
         pop = function() {
             if (private$n == 0) stop("deque is empty")
@@ -199,9 +220,13 @@ DequeL <- R6::R6Class("DequeL",
             if (is.na(ind)) stop("value not found")
             private$q <- private$q[-ind]
             private$n <- private$n - 1
-            invisible(value)
+            invisible(self)
         },
         size = function() length(private$q),
-        as_list = function() private$q
+        as_list = function() private$q,
+        print = function() {
+            n <- self$size()
+            cat("DequeL object with", n, "item(s).\n")
+        }
     )
 )

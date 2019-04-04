@@ -3,7 +3,7 @@
 #' The `Stack` class creates a stack with pairlist backend.
 #' @section Usage:
 #' \preformatted{
-#' Stack$new()
+#' Stack$new(items = NULL)
 #' Stack$push(item)
 #' Stack$pop()
 #' Stack$peek()
@@ -12,6 +12,7 @@
 #' Stack$as_list()
 #' }
 #' @section Argument:
+#' * `items`: initialization list
 #' * `item`: any R object
 #' @examples
 #' s <- Stack$new()
@@ -19,6 +20,9 @@
 #' s$push("second")
 #' s$pop()  # second
 #' s$pop()  # first
+#'
+#' s <- Stack$new(list("foo", "bar"))
+#' s$push("baz")$push("bla")
 #' @seealso [StackL]
 #' @export
 Stack <- R6::R6Class("Stack",
@@ -27,11 +31,15 @@ Stack <- R6::R6Class("Stack",
         q = NULL
     ),
     public = list(
-        initialize = function() {
+        initialize = function(items = NULL) {
             self$clear()
+            for (i in seq_along(items)) {
+                self$push(items[[i]])
+            }
         },
         push = function(item) {
-            invisible(.Call("stack_push", PACKAGE = "collections", private, item))
+            .Call("stack_push", PACKAGE = "collections", private, item)
+            invisible(self)
         },
         pop = function() {
             .Call("stack_pop", PACKAGE = "collections", private)
@@ -44,7 +52,11 @@ Stack <- R6::R6Class("Stack",
             private$q <- NULL
         },
         size = function() length(private$q),
-        as_list = function() as.list(private$q)
+        as_list = function() as.list(private$q),
+        print = function() {
+            n <- self$size()
+            cat("Stack object with", n, "item(s).\n")
+        }
     )
 )
 
@@ -54,7 +66,7 @@ Stack <- R6::R6Class("Stack",
 #' Pure R implementation, mainly for benchmark.
 #' @section Usage:
 #' \preformatted{
-#' StackL$new()
+#' StackL$new(items = NULL)
 #' StackL$push(item)
 #' StackL$pop()
 #' StackL$peek()
@@ -63,6 +75,7 @@ Stack <- R6::R6Class("Stack",
 #' StackL$as_list()
 #' }
 #' @section Argument:
+#' * `items`: initialization list
 #' * `item`: any R object
 #' @examples
 #' s <- StackL$new()
@@ -70,6 +83,9 @@ Stack <- R6::R6Class("Stack",
 #' s$push("second")
 #' s$pop()  # second
 #' s$pop()  # first
+#'
+#' s <- StackL$new(list("foo", "bar"))
+#' s$push("baz")$push("bla")
 #' @seealso [StackL]
 #' @export
 StackL <- R6::R6Class("StackL",
@@ -79,13 +95,16 @@ StackL <- R6::R6Class("StackL",
         n = NULL
     ),
     public = list(
-        initialize = function() {
+        initialize = function(items = NULL) {
             self$clear()
+            for (i in seq_along(items)) {
+                self$push(items[[i]])
+            }
         },
         push = function(item) {
             private$q <- c(item, private$q)
             private$n <- private$n + 1
-            invisible(item)
+            invisible(self)
         },
         pop = function() {
             if (private$n == 0) stop("stack is empty")
@@ -103,6 +122,10 @@ StackL <- R6::R6Class("StackL",
             private$n <- 0
         },
         size = function() private$n,
-        as_list = function() private$q
+        as_list = function() private$q,
+        print = function() {
+            n <- self$size()
+            cat("StackL object with", n, "item(s).\n")
+        }
     )
 )

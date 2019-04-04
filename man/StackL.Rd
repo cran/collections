@@ -15,7 +15,7 @@ Pure R implementation, mainly for benchmark.
 \section{Usage}{
 
 \preformatted{
-StackL$new()
+StackL$new(items = NULL)
 StackL$push(item)
 StackL$pop()
 StackL$peek()
@@ -28,6 +28,7 @@ StackL$as_list()
 \section{Argument}{
 
 \itemize{
+\item \code{items}: initialization list
 \item \code{item}: any R object
 }
 }
@@ -38,6 +39,9 @@ s$push("first")
 s$push("second")
 s$pop()  # second
 s$pop()  # first
+
+s <- StackL$new(list("foo", "bar"))
+s$push("baz")$push("bla")
 }
 \seealso{
 \link{StackL}

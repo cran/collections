@@ -6,7 +6,7 @@
 #' The `Queue` class creates a queue with pairlist backend.
 #' @section Usage:
 #' \preformatted{
-#' Queue$new()
+#' Queue$new(items = NULL)
 #' Queue$push(item)
 #' Queue$pop()
 #' Queue$peek()
@@ -15,6 +15,7 @@
 #' Queue$as_list()
 #' }
 #' @section Argument:
+#' * `items`: initialization list
 #' * `item`: any R object
 #' @examples
 #' q <- Queue$new()
@@ -22,6 +23,9 @@
 #' q$push("second")
 #' q$pop()  # first
 #' q$pop()  # second
+#'
+#' q <- Queue$new(list("foo", "bar"))
+#' q$push("baz")$push("bla")
 #' @seealso [QueueL]
 #' @export
 Queue <- R6::R6Class("Queue",
@@ -31,11 +35,15 @@ Queue <- R6::R6Class("Queue",
         last = NULL
     ),
     public = list(
-        initialize = function() {
+        initialize = function(items = NULL) {
             self$clear()
+            for (i in seq_along(items)) {
+                self$push(items[[i]])
+            }
         },
         push = function(item) {
-            invisible(.Call("queue_push", PACKAGE = "collections", private, item))
+            .Call("queue_push", PACKAGE = "collections", private, item)
+            invisible(self)
         },
         pop = function() {
             .Call("queue_pop", PACKAGE = "collections", private)
@@ -49,7 +57,11 @@ Queue <- R6::R6Class("Queue",
             private$last <- NULL
         },
         size = function() length(private$q),
-        as_list = function() as.list(private$q)
+        as_list = function() as.list(private$q),
+        print = function() {
+            n <- self$size()
+            cat("Queue object with", n, "item(s).\n")
+        }
     )
 )
 
@@ -59,7 +71,7 @@ Queue <- R6::R6Class("Queue",
 #' Pure R implementation, mainly for benchmark.
 #' @section Usage:
 #' \preformatted{
-#' QueueL$new()
+#' QueueL$new(...)
 #' QueueL$push(item)
 #' QueueL$pop()
 #' QueueL$peek()
@@ -68,6 +80,7 @@ Queue <- R6::R6Class("Queue",
 #' QueueL$as_list()
 #' }
 #' @section Argument:
+#' * `...`: initialization list
 #' * `item`: any R object
 #' @examples
 #' q <- QueueL$new()
@@ -75,6 +88,9 @@ Queue <- R6::R6Class("Queue",
 #' q$push("second")
 #' q$pop()  # first
 #' q$pop()  # second
+#'
+#' q <- QueueL$new(list("foo", "bar"))
+#' q$push("baz")$push("bla")
 #' @seealso [Queue]
 #' @export
 QueueL <- R6::R6Class("QueueL",
@@ -84,13 +100,16 @@ QueueL <- R6::R6Class("QueueL",
         n = NULL
     ),
     public = list(
-        initialize = function() {
+        initialize = function(items = NULL) {
             self$clear()
+            for (i in seq_along(items)) {
+                self$push(items[[i]])
+            }
         },
         push = function(item) {
             private$q[[private$n + 1]] <- item
             private$n <- private$n + 1
-            invisible(item)
+            invisible(self)
         },
         pop = function() {
             if (private$n == 0) stop("queue is empty")
@@ -108,6 +127,10 @@ QueueL <- R6::R6Class("QueueL",
             private$n <- 0
         },
         size = function() private$n,
-        as_list = function() private$q
+        as_list = function() private$q,
+        print = function() {
+            n <- self$size()
+            cat("QueueL object with", n, "item(s).\n")
+        }
     )
 )

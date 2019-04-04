@@ -15,7 +15,7 @@ Pure R implementation, mainly for benchmark.
 \section{Usage}{
 
 \preformatted{
-QueueL$new()
+QueueL$new(...)
 QueueL$push(item)
 QueueL$pop()
 QueueL$peek()
@@ -28,6 +28,7 @@ QueueL$as_list()
 \section{Argument}{
 
 \itemize{
+\item \code{...}: initialization list
 \item \code{item}: any R object
 }
 }
@@ -38,6 +39,9 @@ q$push("first")
 q$push("second")
 q$pop()  # first
 q$pop()  # second
+
+q <- QueueL$new(list("foo", "bar"))
+q$push("baz")$push("bla")
 }
 \seealso{
 \link{Queue}

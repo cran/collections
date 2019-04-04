@@ -15,7 +15,7 @@ Pure R implementation, mainly for benchmark.
 \section{Usage}{
 
 \preformatted{
-DequeL$new()
+DequeL$new(items = NULL)
 DequeL$push(item)
 DequeL$pushleft(item)
 DequeL$pop()
@@ -34,6 +34,7 @@ DequeL$as_list()
 \section{Arguments}{
 
 \itemize{
+\item \code{items}: initialization list
 \item \code{item}: any R object
 \item \code{q}: a DequeL object
 }
@@ -46,6 +47,9 @@ q$push("bar")
 q$pushleft("baz")
 q$pop()  # bar
 q$popleft()  # baz
+
+q <- DequeL$new(list("foo", "bar"))
+q$push("baz")$pushleft("bla")
 }
 \seealso{
 \link{Deque}

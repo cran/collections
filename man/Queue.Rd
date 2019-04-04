@@ -14,7 +14,7 @@ The \code{Queue} class creates a queue with pairlist backend.
 \section{Usage}{
 
 \preformatted{
-Queue$new()
+Queue$new(items = NULL)
 Queue$push(item)
 Queue$pop()
 Queue$peek()
@@ -27,6 +27,7 @@ Queue$as_list()
 \section{Argument}{
 
 \itemize{
+\item \code{items}: initialization list
 \item \code{item}: any R object
 }
 }
@@ -37,6 +38,9 @@ q$push("first")
 q$push("second")
 q$pop()  # first
 q$pop()  # second
+
+q <- Queue$new(list("foo", "bar"))
+q$push("baz")$push("bla")
 }
 \seealso{
 \link{QueueL}

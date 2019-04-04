@@ -15,11 +15,11 @@ The key-value pairs are stored in an R environment.
 \section{Usage}{
 
 \preformatted{
-Dict$new()
+Dict$new(items = NULL)
 Dict$set(key, value)
-Dict$get(key, default = NULL)
+Dict$get(key, default)
 Dict$remove(key)
-Dict$pop(key, default = NULL)
+Dict$pop(key, default)
 Dict$has(key)
 Dict$keys()
 Dict$values()
@@ -31,6 +31,7 @@ Dict$as_list()
 
 
 \itemize{
+\item \code{items}: initialization list
 \item \code{key}: any R object, key of the item
 \item \code{value}: any R object, value of the item
 \item \code{default}: optional, the default value of an item if the key is not found
@@ -38,14 +39,13 @@ Dict$as_list()
 }
 
 \examples{
-d <- Dict$new()
-d$set("apple", 5)
-d$set("orange", 10)
+d <- Dict$new(list(apple = 5, orange = 10))
 d$set("banana", 3)
 d$get("apple")
 d$as_list()  # unordered
 d$pop("orange")
 d$as_list()  # "orange" is removed
+d$set("orange", 3)$set("pear", 7)  # chain methods
 }
 \seealso{
 \link{OrderedDict} and \link{OrderedDictL}

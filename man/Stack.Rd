@@ -14,7 +14,7 @@ The \code{Stack} class creates a stack with pairlist backend.
 \section{Usage}{
 
 \preformatted{
-Stack$new()
+Stack$new(items = NULL)
 Stack$push(item)
 Stack$pop()
 Stack$peek()
@@ -27,6 +27,7 @@ Stack$as_list()
 \section{Argument}{
 
 \itemize{
+\item \code{items}: initialization list
 \item \code{item}: any R object
 }
 }
@@ -37,6 +38,9 @@ s$push("first")
 s$push("second")
 s$pop()  # second
 s$pop()  # first
+
+s <- Stack$new(list("foo", "bar"))
+s$push("baz")$push("bla")
 }
 \seealso{
 \link{StackL}

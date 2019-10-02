@@ -3,134 +3,140 @@
 
 #' @title Queue
 #' @description
-#' The `Queue` class creates a queue with pairlist backend.
-#' @section Usage:
+#' The `Queue` function creates a queue.
+#' @param items a list of items
+#' @details
+#' Following methods are exposed:
 #' \preformatted{
-#' Queue$new(items = NULL)
-#' Queue$push(item)
-#' Queue$pop()
-#' Queue$peek()
-#' Queue$clear()
-#' Queue$size()
-#' Queue$as_list()
+#' .$push(item)
+#' .$pop()
+#' .$peek()
+#' .$clear()
+#' .$size()
+#' .$as_list()
+#' .$print()
 #' }
-#' @section Argument:
-#' * `items`: initialization list
 #' * `item`: any R object
 #' @examples
-#' q <- Queue$new()
+#' q <- Queue()
 #' q$push("first")
 #' q$push("second")
 #' q$pop()  # first
 #' q$pop()  # second
 #'
-#' q <- Queue$new(list("foo", "bar"))
+#' q <- Queue(list("foo", "bar"))
 #' q$push("baz")$push("bla")
 #' @seealso [QueueL]
 #' @export
-Queue <- R6::R6Class("Queue",
-    cloneable = FALSE,
-    private = list(
-        q = NULL,
-        last = NULL
-    ),
-    public = list(
-        initialize = function(items = NULL) {
-            self$clear()
-            for (i in seq_along(items)) {
-                self$push(items[[i]])
-            }
-        },
-        push = function(item) {
-            .Call("queue_push", PACKAGE = "collections", private, item)
-            invisible(self)
-        },
-        pop = function() {
-            .Call("queue_pop", PACKAGE = "collections", private)
-        },
-        peek = function() {
-            if (is.null(private$q)) stop("queue is empty")
-            .Call("pairlist_car", PACKAGE = "collections", private$q)
-        },
-        clear = function() {
-            private$q <- NULL
-            private$last <- NULL
-        },
-        size = function() length(private$q),
-        as_list = function() as.list(private$q),
-        print = function() {
-            n <- self$size()
-            cat("Queue object with", n, "item(s).\n")
+Queue <- function(items = NULL) {
+    self <- environment()
+    q <- NULL
+    last <- NULL
+    initialize <- function(items = NULL) {
+        clear()
+        for (i in seq_along(items)) {
+            push(items[[i]])
         }
-    )
-)
+    }
+    push <- function(item) {
+        .Call(C_queue_push, self, item)
+        invisible(self)
+    }
+    pop <- function() {
+        .Call(C_queue_pop, self)
+    }
+    peek <- function() {
+        if (is.null(q)) stop("queue is empty")
+        .Call(C_pairlist_car, q)
+    }
+    clear <- function() {
+        q <<- NULL
+        last <<- NULL
+        invisible(self)
+    }
+    size <- function() length(q)
+    as_list <- function() as.list(q)
+    print <- function() {
+        n <- size()
+        cat("Queue object with", n, "item(s)\n")
+    }
 
-#' @title Queue (list based)
+    initialize(items)
+    self
+}
+
+
+#' @title QueueL (R implementation)
 #' @description
-#' The `QueueL` class creates a queue with list backend.
-#' Pure R implementation, mainly for benchmark.
-#' @section Usage:
+#' The `QueueL` function creates a queue.
+#' Pure R implementation for benchmarking.
+#' @param items a list of items
+#' @details
+#' Following methods are exposed:
 #' \preformatted{
-#' QueueL$new(...)
-#' QueueL$push(item)
-#' QueueL$pop()
-#' QueueL$peek()
-#' QueueL$clear()
-#' QueueL$size()
-#' QueueL$as_list()
+#' .$push(item)
+#' .$pop()
+#' .$peek()
+#' .$clear()
+#' .$size()
+#' .$as_list()
+#' .$print()
 #' }
-#' @section Argument:
-#' * `...`: initialization list
 #' * `item`: any R object
 #' @examples
-#' q <- QueueL$new()
+#' q <- QueueL()
 #' q$push("first")
 #' q$push("second")
 #' q$pop()  # first
 #' q$pop()  # second
 #'
-#' q <- QueueL$new(list("foo", "bar"))
+#' q <- QueueL(list("foo", "bar"))
 #' q$push("baz")$push("bla")
 #' @seealso [Queue]
 #' @export
-QueueL <- R6::R6Class("QueueL",
-    cloneable = FALSE,
-    private = list(
-        q = NULL,
-        n = NULL
-    ),
-    public = list(
-        initialize = function(items = NULL) {
-            self$clear()
-            for (i in seq_along(items)) {
-                self$push(items[[i]])
-            }
-        },
-        push = function(item) {
-            private$q[[private$n + 1]] <- item
-            private$n <- private$n + 1
-            invisible(self)
-        },
-        pop = function() {
-            if (private$n == 0) stop("queue is empty")
-            v <- private$q[[1]]
-            private$q <- private$q[-1]
-            private$n <- private$n - 1
-            v
-        },
-        peek = function() {
-            if (private$n == 0) stop("queue is empty")
-            private$q[[1]]
-        },
-        clear = function() {
-            private$q <- list()
-            private$n <- 0
-        },
-        size = function() private$n,
-        as_list = function() private$q,
-        print = function() {
-            n <- self$size()
-            cat("QueueL object with", n, "item(s).\n")
+QueueL <- function(items = NULL) {
+    self <- environment()
+    q <- NULL
+    n <- NULL
+
+    initialize <- function(items = NULL) {
+        clear()
+        for (i in seq_along(items)) {
+            push(items[[i]])
         }
-    )
-)
+    }
+    push <- function(item) {
+        if (is.null(item)) {
+            q[n + 1] <<- list(item)
+        } else {
+            q[[n + 1]] <<- item
+        }
+        n <<- n + 1
+        invisible(self)
+    }
+    pop <- function() {
+        if (n == 0) stop("queue is empty")
+        v <- q[[1]]
+        q <<- q[-1]
+        n <<- n - 1
+        v
+    }
+    peek <- function() {
+        if (n == 0) stop("queue is empty")
+        q[[1]]
+    }
+    clear <- function() {
+        q <<- list()
+        n <<- 0
+        self
+    }
+    size <- function() n
+    as_list <- function() q
+    print <- function() {
+        n <- size()
+        cat("QueueL object with", n, "item(s)\n")
+    }
+
+    initialize(items)
+    self
+}

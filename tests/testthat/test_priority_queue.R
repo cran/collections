@@ -1,7 +1,7 @@
 context("PriorityQueue")
 
 test_that("push and pop", {
-    q <- PriorityQueue$new()
+    q <- PriorityQueue()
     q$push("a", 2)$push("b", 3)$push("c", 1)
     expect_equal(q$size(), 3)
     expect_equal(q$pop(), "b")
@@ -16,20 +16,37 @@ test_that("push and pop", {
 })
 
 test_that("as_list", {
-    q <- PriorityQueue$new()
+    q <- PriorityQueue()
     q$push("a", 2)$push("b", 3)$push("c", 1)
     expect_equal(q$as_list(), list("b", "a", "c"))
 })
 
 test_that("as_list", {
-    q <- PriorityQueue$new()
+    q <- PriorityQueue()
     q$push("a", 2)$push("b", 3)$push("d", 2)$push("c", 1)
     expect_equal(q$as_list(), list("b", "a", "d", "c"))
 })
 
 test_that("clear", {
-    q <- PriorityQueue$new()
+    q <- PriorityQueue()
     q$push("a", 2)$push("b", 3)$push("d", 2)$push("c", 1)
     q$clear()
     expect_equal(q$size(), 0)
+})
+
+test_that("push NULL", {
+    q <- PriorityQueue()
+    q$push(NULL)$push(NULL)
+    expect_null(q$pop())
+    expect_equal(q$size(), 1)
+})
+
+
+test_that("grow and shrink", {
+    q <- PriorityQueue()
+    for (i in 1:100) q$push(i)
+    len <- q$size()
+    expect_gt(length(q$h), len)
+    for (i in 1:99) q$pop()
+    expect_lt(length(q$h), len)
 })

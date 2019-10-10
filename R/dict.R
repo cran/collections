@@ -53,35 +53,18 @@ Dict <- function(items = NULL) {
             set(argname, items[[argname]])
         }
     }
+    .get_index <- function(key) {
+        .Call(C_dict_index_get, self, ht_xptr, key)
+    }
+    .set <- function(key, value) {
+        .Call(C_dict_set, self, ht_xptr, key, value)
+    }
     set <- function(key, value) {
-        force(value)
-        index <- .Call(C_dict_index_get, self, ht_xptr, key)
-        if (index == -1L) {
-            if (nholes) {
-                nholes <<- nholes - 1L
-                index <- holes$pop()
-            } else {
-                n <<- n + 1L
-                index <- n
-            }
-            if (index > m) {
-                # grow storage
-                m <<- ceiling(m * GROW_FACTOR)
-                ks[m] <<- NA_character_
-                vs[m] <<- list(NULL)
-            }
-            .Call(C_dict_index_set, self, ht_xptr, key, index)
-            ks[index] <<- key
-        }
-        if (is.null(value)) {
-            vs[index] <<- list(value)
-        } else {
-            vs[[index]] <<- value
-        }
+        .set(key, value)
         invisible(self)
     }
     get <- function(key, default) {
-        index <- .Call(C_dict_index_get, self, ht_xptr, key)
+        index <- .get_index(key)
         if (index > 0L) {
             vs[[index]]
         } else if (missing(default)) {
@@ -91,26 +74,7 @@ Dict <- function(items = NULL) {
         }
     }
     remove <- function(key) {
-        index <- .Call(C_dict_index_remove, self, ht_xptr, key)
-        if (index == -1L) {
-            stop("key not found")
-        }
-        n <<- n - 1L
-        ks[index] <<- NA_character_
-        vs[index] <<- list(NULL)
-        holes$push(index)
-        nholes <<- nholes + 1L
-        m1 <- ceiling(SHRINK_FACTOR * m)
-        if (n < m1 && m1 > INITIAL_SIZE) {
-            # shrink storage
-            not_holes <- !is.na(ks)
-            vs <<- vs[not_holes][1:n]
-            ks <<- ks[not_holes][1:n]
-            ht_xptr <<- null_xptr()
-            holes$clear()
-            nholes <<- 0
-            m <<- m1
-        }
+        .Call(C_dict_remove, self, ht_xptr, key)
         invisible(self)
     }
     pop <- function(key, default) {
@@ -119,7 +83,7 @@ Dict <- function(items = NULL) {
         v
     }
     has <- function(key) {
-        key %in% ks
+        .get_index(key) != -1
     }
     keys <- function() {
         ks[!is.na(ks)]

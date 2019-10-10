@@ -45,8 +45,9 @@ OrderedDict <- function(items = NULL) {
         }
     }
     set <- function(key, value) {
-        q$push(key)
-        d$set(key, value)
+        if (d$.set(key, value) == -1) {
+            q$push(key)
+        }
         invisible(self)
     }
     get <- function(key, default) {
@@ -169,7 +170,11 @@ OrderedDictL <- function(items = NULL) {
         }
     }
     set <- function(key, value) {
-        e[key] <<- list(value)
+        if (is.null(value)) {
+            e[key] <<- list(value)
+        } else  {
+            e[[key]] <<- value
+        }
         invisible(self)
     }
     get <- function(key, default) {

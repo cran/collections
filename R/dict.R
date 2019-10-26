@@ -49,8 +49,9 @@ Dict <- function(items = NULL) {
 
     initialize <- function(items = NULL) {
         clear()
-        for (argname in names(items)) {
-            set(argname, items[[argname]])
+        keys <- names(items)
+        for (i in seq_along(items)) {
+            set(keys[i], items[[i]])
         }
     }
     .get_index <- function(key) {
@@ -128,7 +129,7 @@ Dict <- function(items = NULL) {
 #' @title Dictionary (R implementation)
 #' @description
 #' The `DictL` function creates an ordinary (unordered) dictionary (a.k.a. hash).
-#' The implementation is based on R environment.
+#' Pure R implementation for benchmarking.
 #' @param items a list of items
 #' @details
 #' Following methods are exposed:
@@ -167,8 +168,9 @@ DictL <- function(items = NULL) {
 
     initialize <- function(items = NULL) {
         clear()
-        for (argname in names(items)) {
-            set(argname, items[[argname]])
+        keys <- names(items)
+        for (i in seq_along(items)) {
+            set(keys[i], items[[i]])
         }
     }
     set <- function(key, value) {

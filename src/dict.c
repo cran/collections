@@ -70,7 +70,7 @@ static const char* validate_key(SEXP key) {
     if (Rf_StringBlank(c) || c == R_NaString) {
         Rf_error("invalid key");
     }
-    return R_CHAR(Rf_asChar(key));
+    return Rf_translateCharUTF8(c);
 }
 
 
@@ -112,17 +112,15 @@ static int compare(const void* arg, const void* obj) {
 }
 
 
-static int _dict_index_get(SEXP self, SEXP ht_xptr, SEXP _key) {
+static int _dict_index_get(SEXP self, SEXP ht_xptr, const char* key) {
     tommy_hashlin *ht;
     item *s;
-    const char* key;
     int index;
 
     ht = R_ExternalPtrAddr(ht_xptr);
     if (ht == NULL) {
         ht = init_hashlin(self, ht_xptr);
     }
-    key = validate_key(_key);
     tommy_hash_t hashed_key = tommy_strhash_u32(0, key);
     s = tommy_hashlin_search(ht, compare, key, hashed_key);
     if (s == NULL) {
@@ -135,7 +133,7 @@ static int _dict_index_get(SEXP self, SEXP ht_xptr, SEXP _key) {
 
 
 SEXP dict_index_get(SEXP self, SEXP ht_xptr, SEXP _key) {
-    return Rf_ScalarInteger(_dict_index_get(self, ht_xptr, _key));
+    return Rf_ScalarInteger(_dict_index_get(self, ht_xptr, validate_key(_key)));
 }
 
 
@@ -189,16 +187,14 @@ static void shrink(SEXP self, int m) {
 }
 
 
-void _dict_index_set(SEXP self, SEXP ht_xptr, SEXP _key, int index) {
+void _dict_index_set(SEXP self, SEXP ht_xptr, const char* key, int index) {
     tommy_hashlin* ht;
     item *s;
-    const char* key;
 
     ht = R_ExternalPtrAddr(ht_xptr);
     if (ht == NULL) {
         ht = init_hashlin(self, ht_xptr);
     }
-    key = validate_key(_key);
     tommy_hash_t hashed_key = tommy_strhash_u32(0, key);
     s = (item*) malloc(sizeof(item));
     s->key = key;
@@ -208,8 +204,10 @@ void _dict_index_set(SEXP self, SEXP ht_xptr, SEXP _key, int index) {
 
 
 SEXP dict_set(SEXP self, SEXP ht_xptr, SEXP _key, SEXP value) {
-    int idx = _dict_index_get(self, ht_xptr, _key);
+    const char* key = validate_key(_key);
+    int idx = _dict_index_get(self, ht_xptr, key);
     int index;
+
     if (idx == -1) {
         int nholes = get_int_value(self, "nholes");
         if (nholes > 0) {
@@ -225,10 +223,10 @@ SEXP dict_set(SEXP self, SEXP ht_xptr, SEXP _key, SEXP value) {
             grow(self, m2);
             set_int_value(self, "m", m2);
         }
-        _dict_index_set(self, ht_xptr, _key, index);
+        _dict_index_set(self, ht_xptr, key, index);
 
         SEXP ks = PROTECT(get_sexp_value(self, "ks"));
-        SET_STRING_ELT(ks, index - 1, Rf_asChar(_key));
+        SET_STRING_ELT(ks, index - 1, Rf_mkCharCE(key, CE_UTF8));
         UNPROTECT(1);
     } else {
         index = idx;

@@ -2,6 +2,7 @@
 #' @description
 #' The `OrderedDict` function creates an ordered dictionary.
 #' @param items a list of items
+#' @param keys a list of keys, use \code{names(items)} if \code{NULL}
 #' @details
 #' Following methods are exposed:
 #' \preformatted{
@@ -19,7 +20,7 @@
 #' .$as_list()
 #' .$print()
 #' }
-#' * `key`: any R object, key of the item
+#' * `key`: scalar character, environment or function
 #' * `value`: any R object, value of the item
 #' * `default`: optional, the default value of an item if the key is not found
 #' * `d`: an OrderedDict or OrderedDictL
@@ -33,16 +34,28 @@
 #' d$set("orange", 3)$set("pear", 7)  # chain methods
 #' @seealso [Dict] and [OrderedDictL]
 #' @export
-OrderedDict <- function(items = NULL) {
+OrderedDict <- function(items = NULL, keys = NULL) {
     self <- environment()
     d <- NULL
     q <- NULL
+    keys0 <- keys
 
-    initialize <- function(items = NULL) {
+    initialize <- function(items, keys) {
         clear()
-        keys <- names(items)
-        for (i in seq_along(items)) {
-            set(keys[i], items[[i]])
+        if (is.null(keys)) {
+            keys <- names(items)
+            for (i in seq_along(items)) {
+                set(keys[i], items[[i]])
+            }
+        } else if (is.character(keys)) {
+            for (i in seq_along(items)) {
+                set(keys[i], items[[i]])
+            }
+        } else {
+            if (length(items) != length(keys)) stop("items and keys should have the same length")
+            for (i in seq_along(items)) {
+                set(keys[[i]], items[[i]])
+            }
         }
     }
     set <- function(key, value) {
@@ -81,13 +94,13 @@ OrderedDict <- function(items = NULL) {
         d$has(key)
     }
     keys <- function() {
-        unlist(q$as_list())
+        q$as_list()
     }
     values <- function() {
         ret <- vector("list", size())
         keys <- keys()
         for (i in seq_along(keys)) {
-            ret[[i]] <- get(keys[i])
+            ret[[i]] <- get(keys[[i]])
         }
         ret
     }
@@ -108,7 +121,7 @@ OrderedDict <- function(items = NULL) {
         keys <- keys()
         names(ret) <- keys
         for (i in seq_along(keys)) {
-            ret[[i]] <- get(keys[i])
+            ret[[i]] <- get(keys[[i]])
         }
         ret
     }
@@ -117,7 +130,9 @@ OrderedDict <- function(items = NULL) {
         cat("OrderedDict object with", n, "item(s)\n")
     }
 
-    initialize(items)
+    initialize(items, keys0)
+    items <- NULL
+    keys0 <- NULL
     self
 }
 
@@ -128,6 +143,7 @@ OrderedDict <- function(items = NULL) {
 #' The `OrderedDictL` function creates an ordered dictionary.
 #' Pure R implementation for benchmarking.
 #' @param items a list of items
+#' @param keys a list of keys, use \code{names(items)} if \code{NULL}
 #' @details
 #' Following methods are exposed:
 #' \preformatted{
@@ -160,15 +176,27 @@ OrderedDict <- function(items = NULL) {
 #' @seealso [Dict] and [OrderedDict]
 #' @importFrom utils hasName
 #' @export
-OrderedDictL <- function(items = NULL) {
+OrderedDictL <- function(items = NULL, keys = NULL) {
     self <- environment()
     e <- NULL
+    keys0 <- keys
 
-    initialize <- function(items = NULL) {
+    initialize <- function(items, keys) {
         clear()
-        keys <- names(items)
-        for (i in seq_along(items)) {
-            set(keys[i], items[[i]])
+        if (is.null(keys)) {
+            keys <- names(items)
+            for (i in seq_along(items)) {
+                set(keys[i], items[[i]])
+            }
+        } else if (is.character(keys)) {
+            for (i in seq_along(items)) {
+                set(keys[i], items[[i]])
+            }
+        } else {
+            if (length(items) != length(keys)) stop("items and keys should have the same length")
+            for (i in seq_along(items)) {
+                set(keys[[i]], items[[i]])
+            }
         }
     }
     set <- function(key, value) {
@@ -202,9 +230,9 @@ OrderedDictL <- function(items = NULL) {
     popitem <- function(last = TRUE) {
         if (last) {
             keys <- keys()
-            key <- key[length(keys)]
+            key <- key[[length(keys)]]
         } else {
-            keys <- keys()[1]
+            keys <- keys()[[1]]
         }
         v <- get(key)
         remove(key)
@@ -214,13 +242,13 @@ OrderedDictL <- function(items = NULL) {
         hasName(e, key)
     }
     keys <- function() {
-        as.character(names(e))
+        as.list(as.character(names(e)))
     }
     values <- function() {
         ret <- vector("list", size())
         keys <- keys()
         for (i in seq_along(keys)) {
-            ret[[i]] <- get(keys[i])
+            ret[[i]] <- get(keys[[i]])
         }
         ret
     }
@@ -241,6 +269,8 @@ OrderedDictL <- function(items = NULL) {
         cat("OrderedDictL object with", n, "item(s)\n")
     }
 
-    initialize(items)
+    initialize(items, keys0)
+    items <- NULL
+    keys0 <- NULL
     self
 }

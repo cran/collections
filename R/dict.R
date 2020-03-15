@@ -2,6 +2,7 @@
 #' @description
 #' The `Dict` function creates an ordinary (unordered) dictionary (a.k.a. hash).
 #' @param items a list of items
+#' @param keys a list of keys, use \code{names(items)} if \code{NULL}
 #' @details
 #' Following methods are exposed:
 #' \preformatted{
@@ -18,7 +19,7 @@
 #' .$as_list()
 #' .$print()
 #' }
-#' * `key`: any R object, key of the item
+#' * `key`: scalar character, environment or function
 #' * `value`: any R object, value of the item
 #' * `default`: optional, the default value of an item if the key is not found
 #' @examples
@@ -32,7 +33,7 @@
 #' @seealso [OrderedDict] and [OrderedDictL]
 #' @importFrom xptr null_xptr
 #' @export
-Dict <- function(items = NULL) {
+Dict <- function(items = NULL, keys = NULL) {
     self <- environment()
 
     INITIAL_SIZE <- 16L
@@ -46,12 +47,25 @@ Dict <- function(items = NULL) {
     vs <- NULL
     ks <- NULL
     ht_xptr <- NULL
+    # we will define the keys function
+    keys0 <- keys
 
-    initialize <- function(items = NULL) {
+    initialize <- function(items, keys) {
         clear()
-        keys <- names(items)
-        for (i in seq_along(items)) {
-            set(keys[i], items[[i]])
+        if (is.null(keys)) {
+            keys <- names(items)
+            for (i in seq_along(items)) {
+                set(keys[i], items[[i]])
+            }
+        } else if (is.character(keys)) {
+            for (i in seq_along(items)) {
+                set(keys[i], items[[i]])
+            }
+        } else {
+            if (length(items) != length(keys)) stop("items and keys should have the same length")
+            for (i in seq_along(items)) {
+                set(keys[[i]], items[[i]])
+            }
         }
     }
     .get_index <- function(key) {
@@ -87,10 +101,10 @@ Dict <- function(items = NULL) {
         .get_index(key) != -1
     }
     keys <- function() {
-        ks[!is.na(ks)]
+        .Call(C_dict_keys, self)
     }
     values <- function() {
-        vs[!is.na(ks)]
+        .Call(C_dict_values, self)
     }
     update <- function(d) {
         for (key in d$keys()) {
@@ -102,7 +116,7 @@ Dict <- function(items = NULL) {
         n <<- 0L
         m <<- INITIAL_SIZE
         vs <<- vector("list", INITIAL_SIZE)
-        ks <<- rep(NA_character_, INITIAL_SIZE)
+        ks <<- vector("list", INITIAL_SIZE)
         # new("externalptr") doesn't work because it returns a static pointer
         ht_xptr <<- null_xptr()
         holes$clear()
@@ -120,7 +134,9 @@ Dict <- function(items = NULL) {
         cat("Dict object with", n, "item(s)\n")
     }
 
-    initialize(items)
+    initialize(items, keys0)
+    items <- NULL
+    keys0 <- NULL
     self
 }
 
@@ -131,6 +147,7 @@ Dict <- function(items = NULL) {
 #' The `DictL` function creates an ordinary (unordered) dictionary (a.k.a. hash).
 #' Pure R implementation for benchmarking.
 #' @param items a list of items
+#' @param keys a list of keys, use \code{names(items)} if \code{NULL}
 #' @details
 #' Following methods are exposed:
 #' \preformatted{
@@ -147,7 +164,7 @@ Dict <- function(items = NULL) {
 #' .$as_list()
 #' .$print()
 #' }
-#' * `key`: any R object, key of the item
+#' * `key`: scalar character
 #' * `value`: any R object, value of the item
 #' * `default`: optional, the default value of an item if the key is not found
 #' @examples
@@ -161,16 +178,28 @@ Dict <- function(items = NULL) {
 #' @seealso [OrderedDict] and [OrderedDictL]
 #' @importFrom utils hasName
 #' @export
-DictL <- function(items = NULL) {
+DictL <- function(items = NULL, keys = NULL) {
     self <- environment()
     e <- NULL
     n <- NULL
+    keys0 <- keys
 
-    initialize <- function(items = NULL) {
+    initialize <- function(items, keys) {
         clear()
-        keys <- names(items)
-        for (i in seq_along(items)) {
-            set(keys[i], items[[i]])
+        if (is.null(keys)) {
+            keys <- names(items)
+            for (i in seq_along(items)) {
+                set(keys[i], items[[i]])
+            }
+        } else if (is.character(keys)) {
+            for (i in seq_along(items)) {
+                set(keys[i], items[[i]])
+            }
+        } else {
+            if (length(items) != length(keys)) stop("items and keys should have the same length")
+            for (i in seq_along(items)) {
+                set(keys[[i]], items[[i]])
+            }
         }
     }
     set <- function(key, value) {
@@ -205,7 +234,7 @@ DictL <- function(items = NULL) {
         hasName(e, key)
     }
     keys <- function() {
-        ls(e)
+        as.list(ls(e))
     }
     values <- function() {
         ret <- as_list()
@@ -229,6 +258,8 @@ DictL <- function(items = NULL) {
         cat("DictL object with", n, "item(s)\n")
     }
 
-    initialize(items)
+    initialize(items, keys0)
+    items <- NULL
+    keys0 <- NULL
     self
 }

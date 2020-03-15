@@ -4,10 +4,12 @@
 \alias{OrderedDict}
 \title{Ordered Dictionary}
 \usage{
-OrderedDict(items = NULL)
+OrderedDict(items = NULL, keys = NULL)
 }
 \arguments{
 \item{items}{a list of items}
+
+\item{keys}{a list of keys, use \code{names(items)} if \code{NULL}}
 }
 \description{
 The \code{OrderedDict} function creates an ordered dictionary.
@@ -30,7 +32,7 @@ Following methods are exposed:
 .$print()
 }
 \itemize{
-\item \code{key}: any R object, key of the item
+\item \code{key}: scalar character, environment or function
 \item \code{value}: any R object, value of the item
 \item \code{default}: optional, the default value of an item if the key is not found
 \item \code{d}: an OrderedDict or OrderedDictL

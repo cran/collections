@@ -7,7 +7,7 @@
 \title{collections: High Performance Container Data Types}
 \description{
 Provides high performance container data types such
-    as Queue, Stack, Deque, Dict and OrderedDict. Benchmarks
+    as queues, stacks, deques, dicts and ordered dicts. Benchmarks
     <https://randy3k.github.io/collections/articles/benchmark.html> have
     shown that these containers are asymptotically more efficient than
     those offered by other packages.
@@ -15,7 +15,7 @@ Provides high performance container data types such
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://randy3k.github.io/collections}
+  \item \url{https://github.com/randy3k/collections}
 }
 
 }

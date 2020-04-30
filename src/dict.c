@@ -121,6 +121,7 @@ static int _dict_index_get(SEXP self, SEXP ht_xptr, const char* key) {
     item *s;
     int index;
 
+    PROTECT(ht_xptr);
     ht = R_ExternalPtrAddr(ht_xptr);
     if (ht == NULL) {
         ht = init_hashlin(self, ht_xptr);
@@ -132,6 +133,7 @@ static int _dict_index_get(SEXP self, SEXP ht_xptr, const char* key) {
     } else {
         index = s->value;
     }
+    UNPROTECT(1);
     return index;
 }
 
@@ -141,7 +143,8 @@ SEXP dict_index_get(SEXP self, SEXP ht_xptr, SEXP _key) {
 }
 
 
-SEXP dict_get(SEXP self, SEXP ht_xptr, SEXP _key, SEXP _default) {
+SEXP dict_get(SEXP self, SEXP _key, SEXP _default) {
+    SEXP ht_xptr = get_sexp_value(self, "ht_xptr");
     int index = _dict_index_get(self, ht_xptr, validate_key(_key));
     if (index <= 0) {
         if (_default != R_MissingArg) {
@@ -221,8 +224,9 @@ void _dict_index_set(SEXP self, SEXP ht_xptr, const char* key, int index) {
 }
 
 
-SEXP dict_set(SEXP self, SEXP ht_xptr, SEXP _key, SEXP value) {
+SEXP dict_set(SEXP self, SEXP _key, SEXP value) {
     const char* key = validate_key(_key);
+    SEXP ht_xptr = PROTECT(get_sexp_value(self, "ht_xptr"));
     int idx = _dict_index_get(self, ht_xptr, key);
     int index;
 
@@ -255,17 +259,18 @@ SEXP dict_set(SEXP self, SEXP ht_xptr, SEXP _key, SEXP value) {
     }
     SEXP vs = PROTECT(get_sexp_value(self, "vs"));
     SET_VECTOR_ELT(vs, index - 1, value);
-    UNPROTECT(1);
+    UNPROTECT(2);
     return Rf_ScalarInteger(idx);
 }
 
 
-SEXP dict_remove(SEXP self, SEXP ht_xptr, SEXP _key) {
+SEXP dict_remove(SEXP self, SEXP _key) {
     tommy_hashlin *ht;
     item *s;
     const char* key;
     int index;
 
+    SEXP ht_xptr = get_sexp_value(self, "ht_xptr");
     ht = R_ExternalPtrAddr(ht_xptr);
     if (ht == NULL) {
         ht = init_hashlin(self, ht_xptr);

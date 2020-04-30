@@ -38,7 +38,7 @@ ordered_dict <- function(items = NULL, keys = NULL) {
     self <- environment()
     d <- NULL
     q <- NULL
-    keys0 <- keys
+    .keys <- keys
 
     initialize <- function(items, keys) {
         clear()
@@ -59,24 +59,24 @@ ordered_dict <- function(items = NULL, keys = NULL) {
         }
     }
     set <- function(key, value) {
-        if (d$.set(key, value) == -1) {
-            q$push(key)
+        if (.Call(C_dict_set, d, key, value) == -1) {
+            .Call(C_deque_push, q, key)
         }
         invisible(self)
     }
     get <- function(key, default) {
-        d$get(key, default)
+        .Call(C_dict_get, d, key, missing_arg(default))
     }
     remove <- function(key) {
         tryCatch(
-            q$remove(key),
+            .Call(C_deque_remove, q, key),
             error = function(e) stop("key not found")
         )
-        d$remove(key)
+        .Call(C_dict_remove, d, key)
         invisible(self)
     }
     pop <- function(key, default) {
-        v <- get(key, default)
+        v <- .Call(C_dict_get, d, key, missing_arg(default))
         remove(key)
         v
     }
@@ -130,8 +130,8 @@ ordered_dict <- function(items = NULL, keys = NULL) {
         cat("ordered_dict object with", n, "item(s)\n")
     }
 
-    initialize(items, keys0)
+    initialize(items, .keys)
     items <- NULL
-    keys0 <- NULL
+    .keys <- NULL
     self
 }

@@ -4,10 +4,12 @@
 
 [![Github Action](https://github.com/randy3k/collections/workflows/build/badge.svg?branch=master)](https://github.com/randy3k/collections)
 [![codecov](https://codecov.io/gh/randy3k/collections/branch/master/graph/badge.svg)](https://codecov.io/gh/randy3k/collections)
-[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/collections)](https://cran.r-project.org/package=collections)
-[![](http://cranlogs.r-pkg.org/badges/grand-total/collections)](https://cran.r-project.org/package=collections)
+[![CRAN\_Status\_Badge](https://www.r-pkg.org/badges/version/collections)](https://cran.r-project.org/package=collections)
+[![](https://cranlogs.r-pkg.org/badges/grand-total/collections)](https://cran.r-project.org/package=collections)
 
-Documentation: [http://randy3k.github.io/collections](https://randy3k.github.io/collections)
+Github: <https://github.com/randy3k/collections>
+
+Documentation: <https://randy3k.github.io/collections>
 
 Provides high performance container data types such
 as queues, stacks, deques, dicts and ordered dicts. Benchmarks
@@ -77,14 +79,14 @@ pq$pop()
 #> [1] "not_urgent"
 ```
 
-Dictionary. Comparing to R envrionments, `dict()` does not [leak memory](https://r-lib.github.io/fastmap/#memory-leak-examples) and supports hashing functions and environments.
+Dictionary. Comparing to R envrionments, `dict()` does not [leak memory](https://r-lib.github.io/fastmap/#memory-leak-examples) and supports hashing any R objects.
 
 ``` r
 d <- dict()
 e <- new.env()
-d$set(e, 1)$set(sum, 2)
-d$get(e)
-#> [1] 1
+d$set(e, 1)$set(sum, 2)$set(c(1L, 2L), 3)
+d$get(c(1L, 2L))
+#> [1] 3
 ```
 
 Ordered Dictionary

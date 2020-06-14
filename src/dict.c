@@ -63,15 +63,58 @@ static_inline void holes_clear(SEXP self) {
 
 
 static_inline const char* digest(SEXP self, SEXP x) {
+    // we need to mask the object in order to make `base::serialize` work
+    SEXP xsym = install("x");
+    SEXP new_env = PROTECT(Rf_lang3(Rf_install("::"), Rf_install("base"), Rf_install("new.env")));
+    SEXP new_env_call = PROTECT(Rf_lang1(new_env));
+    SEXP mask = PROTECT(Rf_eval(new_env_call, R_BaseEnv));
+    Rf_defineVar(xsym, x, mask);
     SEXP digestfun = PROTECT(get_sexp_value(self, "digest"));
-    SEXP l = PROTECT(Rf_lang2(digestfun, x));
+    SEXP l = PROTECT(Rf_lang2(digestfun, xsym));
     int errorOccurred;
-    SEXP result = R_tryEval(l, self, &errorOccurred);
+    SEXP result = R_tryEval(l, mask, &errorOccurred);
+    // remove the mask
+    Rf_defineVar(xsym, R_NilValue, mask);
     if (errorOccurred || TYPEOF(result) != STRSXP) {
         Rf_error("cannot compute digest of the key");
     }
-    UNPROTECT(2);
+    UNPROTECT(5);
     return R_CHAR(Rf_asChar(result));
+}
+
+
+static_inline int is_hashable(SEXP key) {
+    if (Rf_isNull(key)) {
+        return 1;
+    }else if (Rf_isVectorAtomic(key)) {
+        if (!is_hashable(ATTRIB(key))) {
+            return 0;
+        }
+        return 1;
+    } else if (TYPEOF(key) == VECSXP) {
+        R_xlen_t i;
+        R_xlen_t n = Rf_length(key);
+        for (i = 0; i < n; i++) {
+            if (!is_hashable(VECTOR_ELT(key, i))) {
+                return 0;
+            }
+        }
+        if (!is_hashable(ATTRIB(key))) {
+            return 0;
+        }
+        return 1;
+    } else if (TYPEOF(key) == LISTSXP) {
+        SEXP v;
+        while (key != R_NilValue) {
+            v = CAR(key);
+            if (!is_hashable(v)) {
+                return 0;
+            }
+            key = CDR(key);
+        }
+        return 1;
+    }
+    return 0;
 }
 
 
@@ -80,14 +123,20 @@ tommy_hash_t strhash(SEXP self, SEXP key) {
     if (TYPEOF(key) == STRSXP && Rf_length(key) == 1) {
         SEXP c = Rf_asChar(key);
         key_c = Rf_translateCharUTF8(c);
-    } else if (Rf_isVector(key)) {
+    } else if (is_hashable(key)) {
         key_c = digest(self, key);
+    } else if (Rf_isEnvironment(key)) {
+        key_c = R_alloc(sizeof(char), 30);
+        sprintf((char*) key_c, "env<%p>", key);
     } else if (Rf_isFunction(key)) {
-        key_c = digest(self, BODY(key));
+        SEXP key2 = PROTECT(Rf_shallow_duplicate(key));
+        // the digest function will also hash the closure environment and attributes
+        SET_CLOENV(key2, R_NilValue);
+        SET_ATTRIB(key2, R_NilValue);
+        key_c = digest(self, key2);
+        UNPROTECT(1);
     } else {
-        const char* buf = R_alloc(sizeof(char), 30);
-        sprintf((char*) buf, "<%p>", key);
-        key_c = buf;
+        Rf_error("key is not hashable");
     }
     return tommy_strhash_u32(0, key_c);
 }

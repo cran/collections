@@ -1,5 +1,6 @@
 #include "tommyds/tommyhashlin.h"
 #include "dict.h"
+#include "xxh.h"
 #include "utils.h"
 
 #define INITIAL_SIZE 16
@@ -62,83 +63,41 @@ static_inline void holes_clear(SEXP self) {
 }
 
 
-static_inline const char* digest(SEXP self, SEXP x) {
-    // we need to mask the object in order to make `base::serialize` work
-    SEXP xsym = install("x");
-    SEXP new_env = PROTECT(Rf_lang3(Rf_install("::"), Rf_install("base"), Rf_install("new.env")));
-    SEXP new_env_call = PROTECT(Rf_lang1(new_env));
-    SEXP mask = PROTECT(Rf_eval(new_env_call, R_BaseEnv));
-    Rf_defineVar(xsym, x, mask);
-    SEXP digestfun = PROTECT(get_sexp_value(self, "digest"));
-    SEXP l = PROTECT(Rf_lang2(digestfun, xsym));
-    int errorOccurred;
-    SEXP result = R_tryEval(l, mask, &errorOccurred);
-    // remove the mask
-    Rf_defineVar(xsym, R_NilValue, mask);
-    if (errorOccurred || TYPEOF(result) != STRSXP) {
-        Rf_error("cannot compute digest of the key");
+tommy_hash_t key_to_u64(SEXP key) {
+
+    if (is_hashable(key)) {
+        return xxh_digest(key);
     }
-    UNPROTECT(5);
-    return R_CHAR(Rf_asChar(result));
-}
 
-
-static_inline int is_hashable(SEXP key) {
-    if (Rf_isNull(key)) {
-        return 1;
-    }else if (Rf_isVectorAtomic(key)) {
-        if (!is_hashable(ATTRIB(key))) {
-            return 0;
-        }
-        return 1;
-    } else if (TYPEOF(key) == VECSXP) {
-        R_xlen_t i;
-        R_xlen_t n = Rf_length(key);
-        for (i = 0; i < n; i++) {
-            if (!is_hashable(VECTOR_ELT(key, i))) {
-                return 0;
-            }
-        }
-        if (!is_hashable(ATTRIB(key))) {
-            return 0;
-        }
-        return 1;
-    } else if (TYPEOF(key) == LISTSXP) {
-        SEXP v;
-        while (key != R_NilValue) {
-            v = CAR(key);
-            if (!is_hashable(v)) {
-                return 0;
-            }
-            key = CDR(key);
-        }
-        return 1;
+    if (Rf_isEnvironment(key)) {
+        static char ch[50];
+        snprintf(ch, 50, "<environment: %p>", (void*) key);
+        return XXH3_64bits(ch, strlen(ch));
     }
-    return 0;
-}
 
-
-tommy_hash_t strhash(SEXP self, SEXP key) {
-    const char* key_c;
-    if (TYPEOF(key) == STRSXP && Rf_length(key) == 1) {
-        SEXP c = Rf_asChar(key);
-        key_c = Rf_translateCharUTF8(c);
-    } else if (is_hashable(key)) {
-        key_c = digest(self, key);
-    } else if (Rf_isEnvironment(key)) {
-        key_c = R_alloc(sizeof(char), 30);
-        sprintf((char*) key_c, "env<%p>", key);
-    } else if (Rf_isFunction(key)) {
+    if (Rf_isFunction(key)) {
         SEXP key2 = PROTECT(Rf_shallow_duplicate(key));
-        // the digest function will also hash the closure environment and attributes
+        // avoid R_Serialize serilizing the closure environment and attributes
         SET_CLOENV(key2, R_NilValue);
         SET_ATTRIB(key2, R_NilValue);
-        key_c = digest(self, key2);
+        tommy_hash_t h = xxh_serialized_digest(key2);
         UNPROTECT(1);
-    } else {
-        Rf_error("key is not hashable");
+        return h;
     }
-    return tommy_strhash_u32(0, key_c);
+
+    Rf_error("key is not hashable");
+}
+
+
+SEXP dict_hash(SEXP key) {
+    tommy_hash_t h = key_to_u64(key);
+    char* p = R_alloc(17, sizeof(char));
+    char* c = (char*) &h;
+    for(int j = 0; j < 8; j++) {
+        sprintf(p + 2*j, "%02x", c[j]);
+    }
+    p[16] = 0;
+    return Rf_mkString(p);
 }
 
 
@@ -151,7 +110,7 @@ static tommy_hashlin* init_hashlin(SEXP self, SEXP ht_xptr) {
 
     // restore hash table after it has been serialized
     item* s;
-    tommy_hash_t hashed_key;
+    tommy_hash_t h;
     int i;
     int n = get_int_value(self, "n");
     if (n > 0) {
@@ -161,11 +120,11 @@ static tommy_hashlin* init_hashlin(SEXP self, SEXP ht_xptr) {
         for (i = 0; i < nks; i++) {
             c = VECTOR_ELT(ks, i);
             if (Rf_isNull(c)) continue;
-            hashed_key = strhash(self, c);
+            h = key_to_u64(c);
             s = (item*) malloc(sizeof(item));
             s->key = c;
             s->value = i + 1;
-            tommy_hashlin_insert(ht, &s->node, s, hashed_key);
+            tommy_hashlin_insert(ht, &s->node, s, h);
         }
         UNPROTECT(1);
     }
@@ -179,7 +138,7 @@ static int compare(const void* arg, const void* obj) {
 }
 
 
-static int _dict_index_get(SEXP self, SEXP ht_xptr, SEXP _key, tommy_hash_t hashed_key) {
+static int _dict_index_get(SEXP self, SEXP ht_xptr, SEXP _key, tommy_hash_t h) {
     tommy_hashlin *ht;
     item *s;
     int index;
@@ -189,7 +148,7 @@ static int _dict_index_get(SEXP self, SEXP ht_xptr, SEXP _key, tommy_hash_t hash
     if (ht == NULL) {
         ht = init_hashlin(self, ht_xptr);
     }
-    s = tommy_hashlin_search(ht, compare, _key, hashed_key);
+    s = tommy_hashlin_search(ht, compare, _key, h);
     if (s == NULL) {
         index = -1;
     } else {
@@ -200,16 +159,20 @@ static int _dict_index_get(SEXP self, SEXP ht_xptr, SEXP _key, tommy_hash_t hash
 }
 
 
-SEXP dict_get(SEXP self, SEXP _key, SEXP _default) {
+SEXP dict_get(SEXP self, SEXP _key) {
     SEXP ht_xptr = PROTECT(get_sexp_value(self, "ht_xptr"));
-    tommy_hash_t hashed_key = strhash(self, _key);
-    int index = _dict_index_get(self, ht_xptr, _key, hashed_key);
+    tommy_hash_t h = key_to_u64(_key);
+    int index = _dict_index_get(self, ht_xptr, _key, h);
     UNPROTECT(1);
     if (index <= 0) {
-        if (_default != R_MissingArg) {
-            return _default;
-        } else {
+        SEXP fn = r_current_frame();
+        if (r_is_missing(fn, "default")) {
             Rf_error("key not found");
+        } else {
+            SEXP _default = PROTECT(Rf_findVar(Rf_install("default"), fn));
+            _default = Rf_eval(_default, PRENV(_default));
+            UNPROTECT(1);
+            return _default;
         }
     }
     SEXP vs = get_sexp_value(self, "vs");
@@ -267,7 +230,7 @@ static void shrink(SEXP self, int m) {
 }
 
 
-void _dict_index_set(SEXP self, SEXP ht_xptr, SEXP _key, tommy_hash_t hashed_key, int index) {
+void _dict_index_set(SEXP self, SEXP ht_xptr, SEXP _key, tommy_hash_t h, int index) {
     tommy_hashlin* ht;
     item *s;
 
@@ -278,14 +241,14 @@ void _dict_index_set(SEXP self, SEXP ht_xptr, SEXP _key, tommy_hash_t hashed_key
     s = (item*) malloc(sizeof(item));
     s->key = _key;
     s->value = index;
-    tommy_hashlin_insert(ht, &s->node, s, hashed_key);
+    tommy_hashlin_insert(ht, &s->node, s, h);
 }
 
 
 SEXP dict_set(SEXP self, SEXP _key, SEXP value) {
     SEXP ht_xptr = PROTECT(get_sexp_value(self, "ht_xptr"));
-    tommy_hash_t hashed_key = strhash(self, _key);
-    int idx = _dict_index_get(self, ht_xptr, _key, hashed_key);
+    tommy_hash_t h = key_to_u64(_key);
+    int idx = _dict_index_get(self, ht_xptr, _key, h);
     int index;
 
     if (idx == -1) {
@@ -303,7 +266,7 @@ SEXP dict_set(SEXP self, SEXP _key, SEXP value) {
             grow(self, m2);
             set_int_value(self, "m", m2);
         }
-        _dict_index_set(self, ht_xptr, _key, hashed_key, index);
+        _dict_index_set(self, ht_xptr, _key, h, index);
 
         SEXP ks = PROTECT(get_sexp_value(self, "ks"));
         SET_VECTOR_ELT(ks, index - 1, _key);
@@ -318,20 +281,26 @@ SEXP dict_set(SEXP self, SEXP _key, SEXP value) {
 }
 
 
-SEXP dict_remove(SEXP self, SEXP _key) {
+SEXP dict_remove(SEXP self, SEXP _key, SEXP _silent) {
     tommy_hashlin *ht;
     item *s;
     int index;
+    int silent = Rf_asInteger(_silent);
 
     SEXP ht_xptr = PROTECT(get_sexp_value(self, "ht_xptr"));
     ht = R_ExternalPtrAddr(ht_xptr);
     if (ht == NULL) {
         ht = init_hashlin(self, ht_xptr);
     }
-    tommy_hash_t hashed_key = strhash(self, _key);
-    s = tommy_hashlin_remove(ht, compare, _key, hashed_key);
+    UNPROTECT(1);
+    tommy_hash_t h = key_to_u64(_key);
+    s = tommy_hashlin_remove(ht, compare, _key, h);
     if (s == NULL) {
-        Rf_error("key not found");
+        if (silent) {
+            return R_NilValue;
+        } else {
+            Rf_error("key not found");
+        }
     }
 
     index = s->value;
@@ -342,7 +311,7 @@ SEXP dict_remove(SEXP self, SEXP _key) {
     SEXP vs = PROTECT(get_sexp_value(self, "vs"));
     SET_VECTOR_ELT(ks, index - 1, R_NilValue);
     SET_VECTOR_ELT(vs, index - 1, R_NilValue);
-    UNPROTECT(3);
+    UNPROTECT(2);
     holes_push(self, index);
     add_int_value(self, "nholes", 1);
     int m = get_int_value(self, "m");
@@ -360,8 +329,8 @@ SEXP dict_remove(SEXP self, SEXP _key) {
 
 SEXP dict_has(SEXP self, SEXP _key) {
     SEXP ht_xptr = PROTECT(get_sexp_value(self, "ht_xptr"));
-    tommy_hash_t hashed_key = strhash(self, _key);
-    int index = _dict_index_get(self, ht_xptr, _key, hashed_key);
+    tommy_hash_t h = key_to_u64(_key);
+    int index = _dict_index_get(self, ht_xptr, _key, h);
     UNPROTECT(1);
     return Rf_ScalarLogical(index >= 1);
 }

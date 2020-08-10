@@ -1,4 +1,4 @@
-ae597eb744e5300afcd9b4b44b471df6 *DESCRIPTION
+aae100e64710d1ab2e40b74edb23e2de *DESCRIPTION
 f914fd5b15b598fd5a58e047fca038d4 *LICENSE
 a3274c5c53612b4ba6bf307ac0fa431c *NAMESPACE
 a520ccc1a1326b9971fde46c9886d6e6 *R/collections.R
@@ -63,7 +63,7 @@ b7ce7b24a377ec879d79abd5f08e755d *src/tommyds/tommytree.h
 014324efae46d2f824004e51acd86e0f *src/utils.c
 854a858f4cf00635bad2b705fc9f2f16 *src/utils.h
 2c538aaa11a347c3ca7c4863e9a12d4f *src/xxh.c
-999348eebf9eefef60f5f88a0b46d24c *src/xxh.h
+51bc7eca19923059475d83de344acd41 *src/xxh.h
 009ca718ffe6e56d7ff5de59b0ecc675 *src/xxhash/xxh3.h
 84fb32ec13bee6009676da27d0417261 *src/xxhash/xxhash.h
 ed4b197fbeccc663b8f36e71e639b085 *tests/testthat.R

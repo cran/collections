@@ -1,4 +1,4 @@
-aae100e64710d1ab2e40b74edb23e2de *DESCRIPTION
+e10a6a11a7f27321b07ac93bd28dec21 *DESCRIPTION
 f914fd5b15b598fd5a58e047fca038d4 *LICENSE
 a3274c5c53612b4ba6bf307ac0fa431c *NAMESPACE
 a520ccc1a1326b9971fde46c9886d6e6 *R/collections.R
@@ -9,7 +9,7 @@ d5aa4f56695a9e3f4c0673492099edfd *R/priority_queue.R
 f99da60117138accc18acdade2750ff4 *R/queue.R
 57f6d9bce32b58c4b4f3a0ca21945b0e *R/stack.R
 fcc11d9ccd69343b6f4f6ee8b3037f85 *R/zzz.R
-466c9585f33e5786a0a8ebe1367d2016 *README.md
+f550a947782d082d62974bf26346ed85 *README.md
 11b1aeeab3939c4908c307c018a513c5 *man/cls.Rd
 43aaef69b1e4fbe6f7832543856c084f *man/collections-package.Rd
 56fb84d95809ecc83c3a3f2cf05264e3 *man/deprecated.Rd
@@ -20,10 +20,10 @@ cf93ba1aa737d133777ee90bfff22290 *man/priority_queue.Rd
 13529c7bae146a5cb37e843adc71c96f *man/queue.Rd
 2819ddca85ef9e29e8e1fb6e78002224 *man/stack.Rd
 e4e06a25e256dde839a4952df61b02fc *src/Makevars
-1245b1d365d8ead36b28865a22fbea9b *src/collections.c
+1e1d122b68fad63323cc26b934803e6d *src/collections.c
 4b38c0a2aaf676270b53cb7eb5418a25 *src/deque.c
 11c0176cd4e16d907a6bacc831f9ff12 *src/deque.h
-65e1246f0ba8b4b3eeda77667ae5a6c9 *src/dict.c
+58d66ede1b3477f685e9cd549de5043e *src/dict.c
 e18fceaa3a4c6b13495a9d5238eafc8e *src/dict.h
 db6124ad867961be442726949a145af9 *src/priority_queue.c
 2204c94581e3d780dfb29a4518449008 *src/priority_queue.h
@@ -60,8 +60,8 @@ b7ce7b24a377ec879d79abd5f08e755d *src/tommyds/tommytree.h
 1401fbd45d1f541302a429c91434725a *src/tommyds/tommytrieinp.c
 8f073e30524f8ca4b1309b7ffed9df80 *src/tommyds/tommytrieinp.h
 6c21f95ff9da75eb1a51f7cb0177a8a5 *src/tommyds/tommytypes.h
-014324efae46d2f824004e51acd86e0f *src/utils.c
-854a858f4cf00635bad2b705fc9f2f16 *src/utils.h
+1c7d3f1af603d6f91955602591a074a0 *src/utils.c
+4ead45c687547c0597bdf0b02689a331 *src/utils.h
 2c538aaa11a347c3ca7c4863e9a12d4f *src/xxh.c
 51bc7eca19923059475d83de344acd41 *src/xxh.h
 009ca718ffe6e56d7ff5de59b0ecc675 *src/xxhash/xxh3.h

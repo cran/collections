@@ -1,8 +1,8 @@
 Type: Package
 Package: collections
 Title: High Performance Container Data Types
-Version: 0.3.6
-Date: 2022-10-19
+Version: 0.3.7
+Date: 2023-01-03
 Authors@R: 
     c(person(given = "Randy",
              family = "Lai",
@@ -28,10 +28,10 @@ ByteCompile: yes
 Encoding: UTF-8
 NeedsCompilation: yes
 RoxygenNote: 7.1.0
-Packaged: 2022-10-19 20:43:33 UTC; randylai
+Packaged: 2023-01-03 21:20:24 UTC; randylai
 Author: Randy Lai [aut, cre],
   Andrea Mazzoleni [cph] (tommy hash table library),
   Yann Collet [cph] (xxhash algorithm)
 Maintainer: Randy Lai <randy.cs.lai@gmail.com>
 Repository: CRAN
-Date/Publication: 2022-10-19 21:15:05 UTC
+Date/Publication: 2023-01-05 21:50:53 UTC

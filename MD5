@@ -1,4 +1,4 @@
-da3a853e764365d637764d5e7f3da2cd *DESCRIPTION
+e143820c0bbe767e23db42117be34578 *DESCRIPTION
 f914fd5b15b598fd5a58e047fca038d4 *LICENSE
 a3274c5c53612b4ba6bf307ac0fa431c *NAMESPACE
 27d317fe1e334df5958f8394eafd4078 *R/collections.R
@@ -21,7 +21,7 @@ cf93ba1aa737d133777ee90bfff22290 *man/priority_queue.Rd
 2819ddca85ef9e29e8e1fb6e78002224 *man/stack.Rd
 e4e06a25e256dde839a4952df61b02fc *src/Makevars
 eaeaef54114858d0fedfa36ed1e0cd83 *src/collections.c
-76556b07b98f78abe68312b69cafc4ca *src/deque.c
+b2d750462463f008fa1f21c9064291be *src/deque.c
 11c0176cd4e16d907a6bacc831f9ff12 *src/deque.h
 79dc8696036af69fe3b172ce6eb106e9 *src/dict.c
 574a8b2b68144be6ca3449a665b42938 *src/dict.h
@@ -62,7 +62,7 @@ b7ce7b24a377ec879d79abd5f08e755d *src/tommyds/tommytree.h
 6c21f95ff9da75eb1a51f7cb0177a8a5 *src/tommyds/tommytypes.h
 1c7d3f1af603d6f91955602591a074a0 *src/utils.c
 4ead45c687547c0597bdf0b02689a331 *src/utils.h
-b2a6f2de3b144536c11c6722adc115ed *src/xxh.c
+65dae3bb7d223ef6e63b9a6c9e85c2df *src/xxh.c
 51bc7eca19923059475d83de344acd41 *src/xxh.h
 162ffcb2a373c48de3b98a5e9ae4bfc6 *src/xxhash/xxh3.h
 f8b80f73f7baa1f5dc055c1d88a21c1c *src/xxhash/xxhash.h

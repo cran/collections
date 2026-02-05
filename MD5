@@ -1,4 +1,4 @@
-e143820c0bbe767e23db42117be34578 *DESCRIPTION
+521adc19bd1de9a8c4aa055b234a1bbd *DESCRIPTION
 f914fd5b15b598fd5a58e047fca038d4 *LICENSE
 a3274c5c53612b4ba6bf307ac0fa431c *NAMESPACE
 27d317fe1e334df5958f8394eafd4078 *R/collections.R
@@ -62,7 +62,7 @@ b7ce7b24a377ec879d79abd5f08e755d *src/tommyds/tommytree.h
 6c21f95ff9da75eb1a51f7cb0177a8a5 *src/tommyds/tommytypes.h
 1c7d3f1af603d6f91955602591a074a0 *src/utils.c
 4ead45c687547c0597bdf0b02689a331 *src/utils.h
-65dae3bb7d223ef6e63b9a6c9e85c2df *src/xxh.c
+0641fc4e3e4cab8605b57c74033b8420 *src/xxh.c
 51bc7eca19923059475d83de344acd41 *src/xxh.h
 162ffcb2a373c48de3b98a5e9ae4bfc6 *src/xxhash/xxh3.h
 f8b80f73f7baa1f5dc055c1d88a21c1c *src/xxhash/xxhash.h

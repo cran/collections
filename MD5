@@ -1,4 +1,4 @@
-521adc19bd1de9a8c4aa055b234a1bbd *DESCRIPTION
+b6b71e51749464eaa49b0e02f381bc0b *DESCRIPTION
 f914fd5b15b598fd5a58e047fca038d4 *LICENSE
 a3274c5c53612b4ba6bf307ac0fa431c *NAMESPACE
 27d317fe1e334df5958f8394eafd4078 *R/collections.R
@@ -23,7 +23,7 @@ e4e06a25e256dde839a4952df61b02fc *src/Makevars
 eaeaef54114858d0fedfa36ed1e0cd83 *src/collections.c
 b2d750462463f008fa1f21c9064291be *src/deque.c
 11c0176cd4e16d907a6bacc831f9ff12 *src/deque.h
-79dc8696036af69fe3b172ce6eb106e9 *src/dict.c
+0b89dfcaf155d669f63c4917cbcd2263 *src/dict.c
 574a8b2b68144be6ca3449a665b42938 *src/dict.h
 c41d9f4d24cda6c9896b18ff4adaa478 *src/priority_queue.c
 2204c94581e3d780dfb29a4518449008 *src/priority_queue.h
@@ -60,8 +60,8 @@ b7ce7b24a377ec879d79abd5f08e755d *src/tommyds/tommytree.h
 1401fbd45d1f541302a429c91434725a *src/tommyds/tommytrieinp.c
 8f073e30524f8ca4b1309b7ffed9df80 *src/tommyds/tommytrieinp.h
 6c21f95ff9da75eb1a51f7cb0177a8a5 *src/tommyds/tommytypes.h
-1c7d3f1af603d6f91955602591a074a0 *src/utils.c
-4ead45c687547c0597bdf0b02689a331 *src/utils.h
+13c26219dddb401a389fe6042e196826 *src/utils.c
+2d9a7c2ae1067f0f3da4a51eb3ce6977 *src/utils.h
 0641fc4e3e4cab8605b57c74033b8420 *src/xxh.c
 51bc7eca19923059475d83de344acd41 *src/xxh.h
 162ffcb2a373c48de3b98a5e9ae4bfc6 *src/xxhash/xxh3.h
